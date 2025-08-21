@@ -603,11 +603,23 @@ class ToolRegistry:
         for clause_name, replacement in clause_replacements.items():
             cmd_template = cmd_template.replace(f"{{{clause_name}}}", replacement)
         
-        # Format the final command with remaining arguments
+        # Apply default values for missing arguments  
+        final_args = {}
+        for arg_name, arg_spec in tool.args.items():
+            if arg_name in args:
+                final_args[arg_name] = args[arg_name]
+            elif arg_spec.default is not None:
+                final_args[arg_name] = arg_spec.default
+            elif arg_spec.required:
+                raise ValueError(f"Missing required argument: {arg_name}")
+            else:
+                final_args[arg_name] = ""
+        
+        # Format the final command with arguments
         try:
-            return cmd_template.format(**args)
+            return cmd_template.format(**final_args)
         except KeyError as e:
-            # Handle missing required arguments
+            # Handle any remaining missing arguments
             raise ValueError(f"Missing required argument: {e}")
     
     def _generate_ls_command(self, args: Dict[str, Any]) -> str:

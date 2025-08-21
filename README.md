@@ -44,10 +44,11 @@ nlcli
 
 ### 🔧 Built-in Tools
 - **File operations**: find, list, search content, disk usage, file info
-- **Process management**: list processes, kill by port/name (coming soon)
-- **Network tools**: ping, curl, port checking (coming soon)
-- **Package info**: brew/apt package details (coming soon)
-- **Git operations**: read-only git commands (coming soon)
+- **Process management**: list processes, kill by port/name, process tree, system resources
+- **Network tools**: ping, curl, network connections, DNS lookup, download files
+- **Package info**: brew/apt package details, search, list installed packages
+- **Git operations**: read-only git commands (status, log, diff, branches, etc.)
+- **LLM integration**: optional local language model for enhanced understanding
 
 ## 📖 Examples
 
@@ -223,12 +224,12 @@ def get_my_tools():
 - [x] Session context and memory
 - [x] Declarative tool registry
 
-### Phase 2 - Extended Tools (In Progress)
-- [ ] Process management (ps, kill, top)
-- [ ] Network operations (ping, curl, ss, netstat)
-- [ ] Package management (brew, apt info)
-- [ ] Git read-only operations
-- [ ] Local LLM integration
+### Phase 2 - Extended Tools ✅
+- [x] Process management (ps, kill, top)
+- [x] Network operations (ping, curl, ss, netstat)
+- [x] Package management (brew, apt info)
+- [x] Git read-only operations
+- [x] Local LLM integration
 
 ### Phase 3 - Advanced Features
 - [ ] Plugin SDK and ecosystem

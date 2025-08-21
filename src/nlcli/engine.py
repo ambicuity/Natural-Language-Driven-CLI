@@ -6,9 +6,15 @@ from typing import Optional
 
 from nlcli.context import SessionContext, Intent
 from nlcli.registry import ToolRegistry
+from nlcli.llm import LocalLLM, LLMConfig, default_llm
 
 
-def plan_and_generate(nl_input: str, context: SessionContext, tools: ToolRegistry) -> Optional[Intent]:
+def plan_and_generate(
+    nl_input: str, 
+    context: SessionContext, 
+    tools: ToolRegistry,
+    llm: Optional[LocalLLM] = None
+) -> Optional[Intent]:
     """
     Main function to convert natural language to executable intent.
     
@@ -16,12 +22,22 @@ def plan_and_generate(nl_input: str, context: SessionContext, tools: ToolRegistr
         nl_input: Natural language input from user
         context: Current session context
         tools: Tool registry
+        llm: Optional local LLM for enhanced understanding
     
     Returns:
         Intent object with command and metadata, or None if no match
     """
+    if llm is None:
+        llm = default_llm
+    
     # Preprocess input - resolve pronouns and clean up
     processed_input = context.resolve_pronouns(nl_input.strip())
+    
+    # Use LLM for enhanced intent understanding if available
+    if llm.is_available():
+        llm_response = llm.enhance_intent_understanding(processed_input, context.get_context_for_command())
+        if llm_response.success:
+            processed_input = llm_response.text
     
     # Find matching tools
     matching_tools = tools.find_matching_tools(processed_input)
@@ -32,6 +48,12 @@ def plan_and_generate(nl_input: str, context: SessionContext, tools: ToolRegistr
     # Use the best matching tool
     best_tool, confidence = matching_tools[0]
     
+    # Use LLM for tool selection validation if available
+    if llm.is_available() and len(matching_tools) > 1:
+        tool_names = [tool.name for tool, _ in matching_tools[:5]]  # Top 5 candidates
+        llm_suggestion = llm.suggest_tool_selection(processed_input, tool_names)
+        # For now, we still use the heuristic selection, but this could be enhanced
+    
     # Extract arguments for the chosen tool
     try:
         context_info = context.get_context_for_command()
@@ -40,8 +62,11 @@ def plan_and_generate(nl_input: str, context: SessionContext, tools: ToolRegistr
         # Generate command
         command = tools.generate_command(best_tool, args)
         
-        # Create explanation
-        explanation = generate_explanation(best_tool, args, processed_input)
+        # Create explanation (potentially enhanced by LLM)
+        if llm.is_available():
+            explanation = llm.explain_command(command, context_info)
+        else:
+            explanation = generate_explanation(best_tool, args, processed_input)
         
         # Create intent object
         intent = Intent(
@@ -281,3 +306,27 @@ def preprocess_input(text: str) -> str:
     processed = re.sub(r"(\d+)\s*(?:kilobyte|kilobytes|kilo|kb)", r"\1KB", processed, flags=re.IGNORECASE)
     
     return processed
+
+
+def create_llm_from_config() -> LocalLLM:
+    """
+    Create LLM instance from configuration.
+    Checks environment variables and config files for LLM settings.
+    
+    Returns:
+        LocalLLM instance (may be disabled)
+    """
+    import os
+    
+    # Check for LLM configuration in environment
+    llm_enabled = os.getenv("NLCLI_LLM_ENABLED", "false").lower() in ("true", "1", "yes")
+    model_path = os.getenv("NLCLI_LLM_MODEL_PATH")
+    model_type = os.getenv("NLCLI_LLM_MODEL_TYPE", "huggingface")
+    
+    config = LLMConfig(
+        enabled=llm_enabled,
+        model_path=model_path,
+        model_type=model_type
+    )
+    
+    return LocalLLM(config)
