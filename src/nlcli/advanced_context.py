@@ -87,8 +87,7 @@ class EntityExtractor:
                 r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
                 r"(?:larger|bigger|greater)\s+than\s+"
                 r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
-                r"(?:smaller|less)\s+than\s+"
-                r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
+                r"(?:smaller|less)\s+than\s+" r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
             ],
             "time": [
                 r"(?:in\s+the\s+)?(?:last|past)\s+(\d+)\s+"

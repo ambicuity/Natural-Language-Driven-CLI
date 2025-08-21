@@ -6,7 +6,6 @@ import os
 import signal
 import subprocess
 import time
-
 from typing import Optional
 
 from nlcli.context import ExecutionResult, SessionContext
