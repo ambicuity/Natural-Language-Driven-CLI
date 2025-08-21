@@ -375,6 +375,29 @@ class ToolRegistry:
 
         # Pattern/name extraction (general)
         elif arg_name in ("pattern", "name", "filename"):
+            # First check for file extension patterns
+            if arg_name == "name":
+                extension_patterns = [
+                    r'find\s+([*.]?\w+)\s+files',  # "find .log files", "find *.log files"
+                    r'([*.]?\w+)\s+files?\s+modified',  # ".log files modified"
+                    r'([*.]?\w+)\s+files?\s+(created|modified|updated)',
+                    r'(\.?\w+)\s+files',  # ".log files"
+                ]
+                
+                for pattern in extension_patterns:
+                    match = re.search(pattern, nl_input, re.IGNORECASE)
+                    if match:
+                        file_ext = match.group(1)
+                        # Convert to proper wildcard format
+                        if file_ext.startswith('.'):
+                            return f"*{file_ext}"
+                        elif file_ext.startswith('*'):
+                            return file_ext
+                        elif '.' in file_ext:
+                            return f"*{file_ext}"
+                        else:
+                            return f"*.{file_ext}"
+            
             # Look for quoted strings or specific patterns
             patterns_to_try = [
                 r'search\s+for\s+["\']?([^"\']+?)["\']?\s+in',  # "search for TODO in"
@@ -548,9 +571,18 @@ class ToolRegistry:
             "reverse",
         ):
             positive_indicators = ["with", "show", "include", "detailed", "verbose"]
-            return any(
-                indicator in nl_input.lower() for indicator in positive_indicators
-            )
+            negative_indicators = ["without", "no", "skip", "omit"]
+            
+            # Check for explicit positive indicators
+            if any(indicator in nl_input.lower() for indicator in positive_indicators):
+                return True
+            
+            # Check for explicit negative indicators  
+            if any(indicator in nl_input.lower() for indicator in negative_indicators):
+                return False
+            
+            # If neither positive nor negative indicators found, return None to use default
+            return None
 
         # Package name extraction
         elif arg_name == "package":
@@ -727,11 +759,11 @@ class ToolRegistry:
 
     def _generate_ls_command(self, args: Dict[str, Any]) -> str:
         """Generate ls command."""
-        flags = ["-l"]  # Always use long format by default
+        flags = ["l"]  # Always use long format by default
         if args.get("human", True):
-            flags.append("-h")
+            flags.append("h")
         if args.get("all", False):
-            flags.append("-a")
+            flags.append("a")
 
         flag_str = "".join(flags)
         path = args.get("path", ".")
@@ -748,11 +780,11 @@ class ToolRegistry:
         """Generate grep command."""
         flags = []
         if args.get("recursive", True):
-            flags.append("-r")
+            flags.append("r")
         if args.get("ignore_case", False):
-            flags.append("-i")
+            flags.append("i")
         if args.get("line_numbers", True):
-            flags.append("-n")
+            flags.append("n")
 
         flag_str = "".join(flags)
         pattern = args["pattern"]
@@ -770,13 +802,16 @@ class ToolRegistry:
         """Generate du command."""
         flags = []
         if args.get("human", True):
-            flags.append("-h")
+            flags.append("h")
 
         flag_str = "".join(flags)
         depth = args.get("depth", 1)
         path = args.get("path", ".")
 
-        cmd = f"du -{flag_str} --max-depth={depth} {path}"
+        if flag_str:
+            cmd = f"du -{flag_str} --max-depth={depth} {path}"
+        else:
+            cmd = f"du --max-depth={depth} {path}"
 
         if args.get("sort", True):
             cmd += " | sort -hr"
@@ -812,7 +847,12 @@ class ToolRegistry:
             name = args["name"]
             return f"ps aux | grep '{name}' | grep -v grep"
         else:
-            return f"ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}"
+            # Use built-in sorting for CPU, simplified command
+            if sort == "cpu":
+                return f"ps aux --sort=-pcpu | head -{limit}"
+            else:
+                # Fall back to original complex format for non-CPU sorting to maintain compatibility
+                return f"ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}"
 
     def _generate_lsof_command(self, args: Dict[str, Any]) -> str:
         """Generate lsof command for port lookup."""
