@@ -3,12 +3,12 @@ Test Advanced Context Understanding
 Tests for entity extraction, conversation memory, and semantic understanding.
 """
 
-import tempfile
+
 import unittest
 from datetime import datetime, timedelta
-from pathlib import Path
+from pathlib import Path  # noqa: F401
 
-from nlcli.advanced_context import (
+from nlcli.advanced_context import (  # noqa: F401
     AdvancedContextManager,
     ContextEntity,
     ConversationMemory,

@@ -876,7 +876,7 @@ class ToolRegistry:
 
     def _generate_pstree_command(self, args: Dict[str, Any]) -> str:
         """Generate pstree command."""
-        flags = ["-p"]  # Show PIDs
+        _flags = ["-p"]  # Show PIDs  # noqa: F841
 
         if args.get("user"):
             return f"pstree {args['user']}"

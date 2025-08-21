@@ -5,7 +5,6 @@ Supports dynamic loading of external plugins with validation and security.
 
 import importlib
 import importlib.util
-import inspect
 import logging
 import os
 import sys

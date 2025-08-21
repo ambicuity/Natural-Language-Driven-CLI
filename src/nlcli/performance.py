@@ -3,16 +3,14 @@ Performance Monitoring and Optimization Module.
 Implements profiling, caching, resource monitoring, and performance optimization.
 """
 
-import asyncio
 import functools
-import json
 import logging
 import threading
 import time
 from collections import defaultdict, deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from pathlib import Path
+
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import psutil

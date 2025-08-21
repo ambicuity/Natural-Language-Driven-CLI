@@ -100,7 +100,7 @@ class LocalLLM:
 
         # Placeholder for actual LLM processing
         # This would send the input through the model for enhanced understanding
-        prompt = self._build_intent_prompt(user_input, context)
+        _prompt = self._build_intent_prompt(user_input, context)  # noqa: F841
 
         # For now, just return the original input
         return LLMResponse(text=user_input, confidence=0.5, success=True)
@@ -125,7 +125,7 @@ class LocalLLM:
             )
 
         # Placeholder for actual LLM processing
-        prompt = self._build_tool_selection_prompt(user_input, available_tools)
+        _prompt = self._build_tool_selection_prompt(user_input, available_tools)  # noqa: F841
 
         # Simple heuristic fallback
         for tool in available_tools:
@@ -246,7 +246,7 @@ Return only the tool name that best matches the request."""
         if not self.is_available():
             return LLMResponse(text="", success=False, error="LLM not available")
 
-        prompt = self._build_tool_selection_prompt(user_input, available_tools)
+        _prompt = self._build_tool_selection_prompt(user_input, available_tools)  # noqa: F841
 
         # Placeholder for actual LLM processing
         return LLMResponse(text="", confidence=0.5, success=True)

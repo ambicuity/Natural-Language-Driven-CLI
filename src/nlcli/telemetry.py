@@ -3,16 +3,16 @@ Telemetry and Metrics Collection Module.
 Implements comprehensive observability, logging, and analytics.
 """
 
-import json
 import logging
 import logging.handlers
-import os
+import json
 import sys
 import threading
 import time
 import uuid
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
+
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union

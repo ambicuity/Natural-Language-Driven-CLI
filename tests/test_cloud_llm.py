@@ -5,9 +5,9 @@ Tests for cloud LLM providers and fallback functionality.
 
 import json
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch  # noqa: F401
 from urllib.error import HTTPError, URLError
-from urllib.request import Request
+from urllib.request import Request  # noqa: F401
 
 from nlcli.cloud_llm import (
     CloudLLMConfig,

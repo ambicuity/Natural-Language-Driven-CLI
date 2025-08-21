@@ -3,10 +3,8 @@ Enhanced Security Module for Production-Ready CLI.
 Implements comprehensive security auditing, vulnerability scanning, and policy enforcement.
 """
 
-import hashlib
 import logging
 import re
-import subprocess
 import time
 from dataclasses import dataclass
 from enum import Enum

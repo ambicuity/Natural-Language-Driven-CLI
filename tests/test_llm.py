@@ -4,7 +4,7 @@ Tests for Local LLM integration functionality.
 
 import os
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch  # noqa: F401
 
 from nlcli.engine import create_llm_from_config
 from nlcli.llm import LLMConfig, LocalLLM, create_llm, default_llm
@@ -28,7 +28,7 @@ class TestLocalLLM(unittest.TestCase):
     def test_enabled_llm_placeholder(self):
         """Test enabled LLM with placeholder functionality."""
         config = LLMConfig(enabled=True)
-        llm = LocalLLM(config)
+        _llm = LocalLLM(config)  # noqa: F841
 
         # Since we don't have actual models, this will still be disabled
         # but the config is marked as enabled
