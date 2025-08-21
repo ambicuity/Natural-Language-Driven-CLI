@@ -1,9 +1,10 @@
 """
 Safety Layer - Guards against dangerous operations and provides security checks.
+Enhanced with Phase 4 Production Ready features.
 """
 import re
 from pathlib import Path
-from typing import List, Set
+from typing import List, Set, Tuple, Optional
 
 from nlcli.context import SessionContext, Intent
 
@@ -249,3 +250,79 @@ def configure_safety(allowed_dirs: List[str]) -> None:
     """Configure safety settings."""
     for directory in allowed_dirs:
         _safety_guard.add_allowed_directory(directory)
+
+
+def enhanced_safety_check(intent: Intent, context: SessionContext) -> Tuple[bool, str, List]:
+    """
+    Enhanced safety check integrating Phase 4 security features.
+    
+    Args:
+        intent: Command intent to check
+        context: Session context
+        
+    Returns:
+        Tuple of (is_safe, message, violations)
+    """
+    try:
+        # Import Phase 4 modules (lazy loading)
+        from nlcli.security import audit_command_security
+        from nlcli.enterprise import get_enterprise_manager
+        from nlcli.telemetry import get_telemetry_manager
+        
+        # Existing safety check
+        is_safe = guard(intent, context)
+        message = "Command appears safe" if is_safe else "Command blocked by safety checks"
+        violations = []
+        
+        # Enhanced security audit
+        security_violations = audit_command_security(intent, context)
+        if security_violations:
+            violations.extend([{
+                "type": "security",
+                "severity": v.severity.value,
+                "description": v.description,
+                "recommendation": v.recommendation
+            } for v in security_violations])
+            
+            # Check for critical violations
+            critical_violations = [v for v in security_violations if v.severity.value == "critical"]
+            if critical_violations:
+                is_safe = False
+                message = f"Critical security violations detected: {len(critical_violations)}"
+        
+        # Enterprise policy check (if enabled)
+        enterprise_manager = get_enterprise_manager()
+        if enterprise_manager.config_manager.get_config_value("enterprise.enabled", False):
+            policy_result = enterprise_manager.evaluate_command(intent.command)
+            if not policy_result.get("allowed", True):
+                is_safe = False
+                message = policy_result.get("reason", "Policy violation")
+                violations.append({
+                    "type": "policy",
+                    "description": message,
+                    "violations": policy_result.get("violations", [])
+                })
+        
+        # Record telemetry
+        telemetry = get_telemetry_manager()
+        telemetry.events.log_event({
+            "event_type": "security_check",
+            "command": intent.command,
+            "safe": is_safe,
+            "violations": len(violations)
+        })
+        
+        return is_safe, message, violations
+        
+    except ImportError as e:
+        # Fallback to basic safety if Phase 4 modules not available
+        is_safe = guard(intent, context)
+        message = "Command appears safe" if is_safe else "Command blocked by safety checks"
+        return is_safe, message, []
+    except Exception as e:
+        # Log error but don't fail safety check
+        import logging
+        logging.getLogger(__name__).error(f"Error in enhanced safety check: {e}")
+        is_safe = guard(intent, context)
+        message = "Command appears safe" if is_safe else "Command blocked by safety checks"
+        return is_safe, message, []

@@ -1,12 +1,164 @@
 """
 Engine for planning and generating commands from natural language.
+Enhanced with Phase 4 Production Ready features.
 """
 import re
-from typing import Optional
+from typing import Optional, Tuple, List, Dict, Any
 
 from nlcli.context import SessionContext, Intent
 from nlcli.registry import ToolRegistry
 from nlcli.llm import LocalLLM, LLMConfig, default_llm
+
+
+def enhanced_plan_and_generate(
+    nl_input: str, 
+    context: SessionContext, 
+    tools: ToolRegistry,
+    llm: Optional[LocalLLM] = None,
+    session_id: Optional[str] = None
+) -> Tuple[Optional[Intent], Dict[str, Any]]:
+    """
+    Enhanced planning and generation with Phase 4 production features.
+    
+    Args:
+        nl_input: Natural language input from user
+        context: Current session context  
+        tools: Tool registry
+        llm: Optional local LLM for enhanced understanding
+        session_id: Session ID for tracking
+    
+    Returns:
+        Tuple of (Intent object, metadata dict)
+    """
+    metadata = {
+        "enhanced_features_enabled": True,
+        "performance_metrics": {},
+        "security_violations": [],
+        "error_recovery_applied": False,
+        "telemetry_recorded": True
+    }
+    
+    try:
+        # Import Phase 4 modules (lazy loading for backward compatibility)
+        from nlcli.performance import profile_operation, get_performance_profiler
+        from nlcli.error_recovery import get_error_recovery_manager, ErrorContext
+        from nlcli.telemetry import get_telemetry_manager
+        from nlcli.security import get_security_auditor
+        from nlcli.enterprise import get_enterprise_manager
+        
+        profiler = get_performance_profiler()
+        recovery_manager = get_error_recovery_manager()
+        telemetry = get_telemetry_manager()
+        
+        # Profile the entire planning operation
+        with profiler.profile_operation("plan_and_generate", {"input_length": len(nl_input)}) as perf_context:
+            
+            # Record telemetry event
+            telemetry.events.log_event({
+                "event_type": "command_planning_started",
+                "session_id": session_id,
+                "input_length": len(nl_input)
+            })
+            
+            # Use basic planning with error recovery
+            error_context = ErrorContext(
+                operation="plan_and_generate",
+                user_input=nl_input,
+                session_id=session_id
+            )
+            
+            try:
+                intent = plan_and_generate(nl_input, context, tools, llm)
+                
+                if intent:
+                    # Enhanced security audit
+                    security_auditor = get_security_auditor()
+                    violations = security_auditor.audit_command(intent, context)
+                    metadata["security_violations"] = [
+                        {
+                            "type": v.violation_type.value,
+                            "severity": v.severity.value,
+                            "description": v.description
+                        } for v in violations
+                    ]
+                    
+                    # Enterprise policy check
+                    enterprise = get_enterprise_manager()
+                    if enterprise.config_manager.get_config_value("enterprise.enabled", False):
+                        policy_result = enterprise.evaluate_command(intent.command)
+                        if not policy_result.get("allowed", True):
+                            metadata["policy_violations"] = policy_result.get("violations", [])
+                    
+                    # Record successful planning
+                    telemetry.record_command_execution(
+                        command=intent.command,
+                        success=True,
+                        duration=0,  # Will be filled by profiler
+                        tool_name=intent.tool_name,
+                        confidence=intent.confidence
+                    )
+                
+                return intent, metadata
+                
+            except Exception as e:
+                # Apply error recovery
+                recovery_result = recovery_manager.handle_error(e, error_context)
+                metadata["error_recovery_applied"] = recovery_result is not None
+                
+                if recovery_result and recovery_result.get("use_fallback"):
+                    # Try fallback approach (basic heuristics only)
+                    intent = basic_plan_and_generate(nl_input, context, tools)
+                    return intent, metadata
+                else:
+                    raise
+                    
+    except ImportError:
+        # Fallback to basic planning if Phase 4 modules not available
+        intent = plan_and_generate(nl_input, context, tools, llm)
+        metadata["enhanced_features_enabled"] = False
+        return intent, metadata
+    except Exception as e:
+        # Log error but continue with basic approach
+        import logging
+        logging.getLogger(__name__).error(f"Enhanced planning failed: {e}")
+        intent = plan_and_generate(nl_input, context, tools, llm)
+        metadata["enhanced_features_enabled"] = False
+        metadata["error"] = str(e)
+        return intent, metadata
+
+
+def basic_plan_and_generate(
+    nl_input: str,
+    context: SessionContext,
+    tools: ToolRegistry
+) -> Optional[Intent]:
+    """
+    Basic planning without LLM or enhanced features.
+    Fallback for error recovery scenarios.
+    """
+    # Simple keyword-based matching
+    processed_input = context.resolve_pronouns(nl_input.strip())
+    matching_tools = tools.find_matching_tools(processed_input)
+    
+    if not matching_tools:
+        return None
+    
+    best_tool, confidence = matching_tools[0]
+    
+    try:
+        args = tools.extract_args(best_tool, processed_input, context.get_context_for_command())
+        command = tools.generate_command(best_tool, args)
+        
+        return Intent(
+            tool_name=best_tool.name,
+            args=args,
+            command=command,
+            explanation=f"Basic command generation: {command}",
+            danger_level=best_tool.danger_level,
+            confidence=confidence * 0.8  # Lower confidence for fallback
+        )
+    except Exception:
+        return None
 
 
 def plan_and_generate(
