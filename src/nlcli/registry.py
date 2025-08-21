@@ -229,7 +229,38 @@ class ToolRegistry:
                     else:
                         return replacement
         
-        # Pattern/name extraction
+        # Process name/PID extraction (must come before general pattern/name extraction)
+        elif arg_name == "pid":
+            pid_patterns = [
+                r'process\s+(\d+)',
+                r'pid\s+(\d+)',
+                r'kill\s+(\d+)',
+            ]
+            for pattern in pid_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    return int(match.group(1))
+                    
+        elif arg_name == "name" and any(word in nl_input.lower() for word in ["kill", "terminate", "stop"]):
+            # Process name for kill/terminate commands
+            name_patterns = [
+                r'kill\s+process\s+([a-zA-Z0-9_-]+)',
+                r'terminate\s+([a-zA-Z0-9_-]+)\s+process',
+                r'terminate\s+([a-zA-Z0-9_-]+)', 
+                r'stop\s+([a-zA-Z0-9_-]+)\s+process',
+                r'stop\s+([a-zA-Z0-9_-]+)',
+                r'kill\s+([a-zA-Z0-9_-]+)',
+                r'([a-zA-Z0-9_-]+)\s+process',
+            ]
+            for pattern in name_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    name = match.group(1)
+                    # Don't return common words that aren't process names
+                    if name not in ["the", "a", "an", "process", "kill", "terminate", "stop"]:
+                        return name
+        
+        # Pattern/name extraction (general)
         elif arg_name in ("pattern", "name", "filename"):
             # Look for quoted strings or specific patterns
             patterns_to_try = [
@@ -279,6 +310,105 @@ class ToolRegistry:
                     else:
                         return file_ext
         
+        # Port extraction
+        elif arg_name == "port":
+            port_patterns = [
+                r'port\s+(\d+)',
+                r':(\d+)',
+                r'(\d+)\s*$',  # number at end
+            ]
+            for pattern in port_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    port_num = int(match.group(1))
+                    if 1 <= port_num <= 65535:
+                        return port_num
+        
+        # Host/URL extraction
+        elif arg_name in ("host", "url"):
+            host_patterns = [
+                r'ping\s+([a-zA-Z0-9.-]+)',
+                r'from\s+([a-zA-Z0-9.-]+)',
+                r'to\s+([a-zA-Z0-9.-]+)', 
+                r'(https?://[^\s]+)',
+                r'([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',  # domain.com
+                r'(\d+\.\d+\.\d+\.\d+)',  # IP address
+                r'(localhost)',
+            ]
+            for pattern in host_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    result = match.group(1)
+                    # For URLs, ensure they have a protocol
+                    if arg_name == "url" and not result.startswith(("http://", "https://")):
+                        result = "https://" + result
+                    return result
+
+        
+        # Count/limit extraction
+        elif arg_name in ("count", "limit"):
+            count_patterns = [
+                r'(\d+)\s+times',
+                r'(\d+)\s+pings?',
+                r'top\s+(\d+)',
+                r'first\s+(\d+)',
+                r'limit\s+(\d+)',
+            ]
+            for pattern in count_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    return int(match.group(1))
+        
+        # Sort type extraction
+        elif arg_name == "sort":
+            if any(word in nl_input.lower() for word in ["memory", "mem", "ram"]):
+                return "mem"
+            elif any(word in nl_input.lower() for word in ["cpu", "processor"]):
+                return "cpu"
+            elif any(word in nl_input.lower() for word in ["time"]):
+                return "time"
+            elif any(word in nl_input.lower() for word in ["pid"]):
+                return "pid"
+        
+        # HTTP method extraction
+        elif arg_name == "method":
+            if "post" in nl_input.lower():
+                return "POST"
+            elif "put" in nl_input.lower():
+                return "PUT"
+            elif "delete" in nl_input.lower():
+                return "DELETE"
+            elif "head" in nl_input.lower():
+                return "HEAD"
+            else:
+                return "GET"
+        
+        # Protocol extraction
+        elif arg_name == "protocol":
+            if "tcp" in nl_input.lower():
+                return "tcp"
+            elif "udp" in nl_input.lower():
+                return "udp"
+        
+        # DNS record type extraction
+        elif arg_name == "record_type":
+            record_types = {
+                "mx": "MX", "mail": "MX",
+                "ns": "NS", "nameserver": "NS",
+                "cname": "CNAME", "alias": "CNAME",
+                "aaaa": "AAAA", "ipv6": "AAAA",
+                "txt": "TXT", "text": "TXT"
+            }
+            for keyword, record_type in record_types.items():
+                if keyword in nl_input.lower():
+                    return record_type
+            return "A"  # Default to A record
+        
+        # Boolean flag extraction
+        elif arg_name in ("headers", "follow", "detailed", "listening", "process", "stats", "all", "human", "reverse"):
+            positive_indicators = ["with", "show", "include", "detailed", "verbose"]
+            return any(indicator in nl_input.lower() for indicator in positive_indicators)
+        
         return None
     
     def generate_command(self, tool: ToolSchema, args: Dict[str, Any]) -> str:
@@ -297,6 +427,28 @@ class ToolRegistry:
             return self._generate_du_command(args)
         elif tool.name == "file_info":
             return self._generate_stat_command(args)
+        elif tool.name == "list_processes":
+            return self._generate_ps_command(args)
+        elif tool.name == "process_by_port":
+            return self._generate_lsof_command(args)
+        elif tool.name == "kill_process":
+            return self._generate_kill_command(args)
+        elif tool.name == "process_tree":
+            return self._generate_pstree_command(args)
+        elif tool.name == "system_resources":
+            return self._generate_system_resources_command(args)
+        elif tool.name == "ping_host":
+            return self._generate_ping_command(args)
+        elif tool.name == "http_request":
+            return self._generate_curl_command(args)
+        elif tool.name == "network_connections":
+            return self._generate_ss_command(args)
+        elif tool.name == "dns_lookup":
+            return self._generate_dig_command(args)
+        elif tool.name == "download_file":
+            return self._generate_wget_command(args)
+        elif tool.name == "network_interfaces":
+            return self._generate_ip_command(args)
         
         # Apply clauses based on arguments for find_files
         clauses = generator.get("clauses", {})
@@ -399,6 +551,151 @@ class ToolRegistry:
         else:
             return f"stat {path}"
     
+    def _generate_ps_command(self, args: Dict[str, Any]) -> str:
+        """Generate ps command."""
+        sort_col_map = {
+            "cpu": "3",
+            "mem": "4", 
+            "memory": "4",
+            "time": "10",
+            "pid": "2"
+        }
+        
+        sort = args.get("sort", "cpu")
+        sort_col = sort_col_map.get(sort, "3")
+        limit = args.get("limit", 20)
+        
+        if args.get("port"):
+            # Use lsof for port-specific processes
+            return f"lsof -i :{args['port']} -P -n"
+        elif args.get("name"):
+            name = args["name"]
+            return f"ps aux | grep '{name}' | grep -v grep"
+        else:
+            return f"ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}"
+    
+    def _generate_lsof_command(self, args: Dict[str, Any]) -> str:
+        """Generate lsof command for port lookup."""
+        port = args["port"]
+        return f"lsof -i :{port} -P -n"
+    
+    def _generate_kill_command(self, args: Dict[str, Any]) -> str:
+        """Generate kill command."""
+        signal = args.get("signal", "TERM")
+        
+        if args.get("pid"):
+            target = str(args["pid"])
+        elif args.get("name"):
+            # Use pkill for name-based killing
+            name = args["name"]
+            return f"pkill -{signal} {name}"
+        else:
+            raise ValueError("Either pid or name must be specified for kill command")
+        
+        return f"kill -{signal} {target}"
+    
+    def _generate_pstree_command(self, args: Dict[str, Any]) -> str:
+        """Generate pstree command."""
+        flags = ["-p"]  # Show PIDs
+        
+        if args.get("user"):
+            return f"pstree {args['user']}"
+        elif args.get("pid"):
+            return f"pstree -p {args['pid']}"
+        else:
+            return "pstree -p"
+    
+    def _generate_system_resources_command(self, args: Dict[str, Any]) -> str:
+        """Generate system resource monitoring command."""
+        if args.get("detailed"):
+            return "top -bn1 | head -20 && echo '--- Memory ---' && free -h && echo '--- Disk ---' && df -h"
+        else:
+            return "top -bn1 | head -5 && free -h && df -h /"
+    
+    def _generate_ping_command(self, args: Dict[str, Any]) -> str:
+        """Generate ping command."""
+        host = args["host"]
+        count = args.get("count", 4)
+        timeout = args.get("timeout", 5)
+        
+        return f"ping -c {count} -W {timeout} {host}"
+    
+    def _generate_curl_command(self, args: Dict[str, Any]) -> str:
+        """Generate curl command."""
+        url = args["url"]
+        method = args.get("method", "GET")
+        timeout = args.get("timeout", 30)
+        
+        flags = [f"-X {method}", f"--max-time {timeout}"]
+        
+        if args.get("headers"):
+            flags.append("-i")  # Include headers
+        
+        if args.get("follow", True):
+            flags.append("-L")  # Follow redirects
+        
+        flag_str = " ".join(flags)
+        return f"curl {flag_str} '{url}'"
+    
+    def _generate_ss_command(self, args: Dict[str, Any]) -> str:
+        """Generate ss (socket statistics) command."""
+        flags = ["ss"]
+        
+        protocol = args.get("protocol")
+        if protocol == "tcp":
+            flags.append("-t")
+        elif protocol == "udp":
+            flags.append("-u")
+        else:
+            flags.append("-tu")  # Both TCP and UDP
+        
+        if args.get("listening"):
+            flags.append("-l")
+        
+        flags.append("-n")  # Don't resolve hostnames
+        
+        if args.get("process"):
+            flags.append("-p")  # Show process info
+        
+        return " ".join(flags)
+    
+    def _generate_dig_command(self, args: Dict[str, Any]) -> str:
+        """Generate dig command."""
+        host = args["host"]
+        record_type = args.get("record_type", "A")
+        
+        if args.get("reverse"):
+            return f"dig -x {host} +short"
+        else:
+            return f"dig {record_type} {host} +short"
+    
+    def _generate_wget_command(self, args: Dict[str, Any]) -> str:
+        """Generate wget command."""
+        url = args["url"]
+        flags = []
+        
+        if args.get("progress", True):
+            flags.append("--progress=bar")
+        
+        if args.get("resume"):
+            flags.append("-c")  # Continue/resume
+        
+        if args.get("output"):
+            flags.append(f"-O {args['output']}")
+        
+        flag_str = " ".join(flags)
+        return f"wget {flag_str} '{url}'".strip()
+    
+    def _generate_ip_command(self, args: Dict[str, Any]) -> str:
+        """Generate ip command for network interfaces."""
+        if args.get("stats"):
+            return "ip -s link show"
+        elif args.get("interface"):
+            interface = args["interface"]
+            return f"ip addr show {interface}"
+        else:
+            return "ip addr show"
+    
     def print_tools(self, console: Console) -> None:
         """Print available tools."""
         table = Table(title="Available Tools", border_style="green")
@@ -425,8 +722,16 @@ class ToolRegistry:
         """Load built-in tool schemas."""
         # Import built-in tools
         from nlcli.tools.file_tools import get_file_tools
+        from nlcli.tools.process_tools import get_process_tools
+        from nlcli.tools.network_tools import get_network_tools
         
         for tool in get_file_tools():
+            self.register_tool(tool)
+            
+        for tool in get_process_tools():
+            self.register_tool(tool)
+            
+        for tool in get_network_tools():
             self.register_tool(tool)
 
 

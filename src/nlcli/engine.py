@@ -94,7 +94,18 @@ def generate_explanation(tool_schema, args: dict, original_input: str) -> str:
         "list_files": "I'll list directory contents", 
         "search_content": "I'll search for text content",
         "disk_usage": "I'll show disk usage information",
-        "file_info": "I'll show file information"
+        "file_info": "I'll show file information",
+        "list_processes": "I'll show running processes",
+        "process_by_port": "I'll find processes using the specified port",
+        "kill_process": "I'll terminate the specified process",
+        "process_tree": "I'll show the process tree hierarchy",
+        "system_resources": "I'll show system resource usage",
+        "ping_host": "I'll ping the specified host",
+        "http_request": "I'll make an HTTP request",
+        "network_connections": "I'll show network connections",
+        "dns_lookup": "I'll perform a DNS lookup",
+        "download_file": "I'll download the file",
+        "network_interfaces": "I'll show network interface information"
     }.get(tool_schema.name, "I'll execute a command")
     
     # Build explanation based on arguments
@@ -139,6 +150,42 @@ def generate_explanation(tool_schema, args: dict, original_input: str) -> str:
     if "file_pattern" in args:
         filters.append(f"in {args['file_pattern']} files")
     
+    # Add network/process-specific conditions
+    if "host" in args:
+        filters.append(f"for host {args['host']}")
+    
+    if "port" in args:
+        filters.append(f"on port {args['port']}")
+    
+    if "count" in args and tool_schema.name == "ping_host":
+        count = args["count"]
+        if count == 1:
+            filters.append("once")
+        else:
+            filters.append(f"{count} times")
+    
+    if "method" in args and args["method"] != "GET":
+        filters.append(f"using {args['method']} method")
+    
+    if "record_type" in args and args["record_type"] != "A":
+        filters.append(f"for {args['record_type']} records")
+    
+    if "sort" in args and tool_schema.name == "list_processes":
+        sort_type = args["sort"]
+        if sort_type == "mem":
+            filters.append("sorted by memory usage")
+        elif sort_type == "cpu":
+            filters.append("sorted by CPU usage")
+        else:
+            filters.append(f"sorted by {sort_type}")
+    
+    if "signal" in args and tool_schema.name == "kill_process":
+        signal = args["signal"]
+        if signal == "KILL":
+            filters.append("using force")
+        elif signal != "TERM":
+            filters.append(f"using {signal} signal")
+    
     # Combine filters with appropriate conjunctions
     if filters:
         if len(filters) == 1:
@@ -158,6 +205,32 @@ def generate_explanation(tool_schema, args: dict, original_input: str) -> str:
     elif tool_schema.name == "disk_usage":
         if args.get("depth", 1) > 1:
             explanation_parts.append(f"with {args['depth']} levels of depth")
+    
+    elif tool_schema.name in ("ping_host", "http_request", "dns_lookup"):
+        # These tools already have their target in the filters
+        pass
+    
+    elif tool_schema.name == "network_connections":
+        if args.get("listening"):
+            explanation_parts.append("showing only listening ports")
+        if args.get("process"):
+            explanation_parts.append("including process information")
+    
+    elif tool_schema.name == "download_file":
+        if args.get("output"):
+            explanation_parts.append(f"saving as {args['output']}")
+        if args.get("resume"):
+            explanation_parts.append("resuming previous download")
+    
+    elif tool_schema.name == "kill_process":
+        if args.get("pid"):
+            explanation_parts.append(f"with PID {args['pid']}")
+        elif args.get("name"):
+            explanation_parts.append(f"named '{args['name']}'")
+    
+    elif tool_schema.name == "system_resources":
+        if args.get("detailed"):
+            explanation_parts.append("with detailed information")
     
     # Join all parts into a coherent explanation
     explanation = " ".join(explanation_parts)
