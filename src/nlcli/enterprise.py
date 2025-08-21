@@ -88,7 +88,18 @@ class AuditLogEntry:
     def __post_init__(self):
         """Calculate checksum for integrity verification."""
         # Create checksum of all fields except checksum itself
-        data = {k: v for k, v in asdict(self).items() if k != 'checksum'}
+        data = {
+            'entry_id': self.entry_id,
+            'timestamp': self.timestamp,
+            'user_id': self.user_id,
+            'session_id': self.session_id,
+            'action': self.action.value,
+            'resource': self.resource,
+            'details': self.details,
+            'success': self.success,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent
+        }
         self.checksum = hashlib.sha256(json.dumps(data, sort_keys=True, default=str).encode()).hexdigest()
 
 
