@@ -134,14 +134,20 @@ class SessionContext:
 
             if auto_detect:
                 lang_result = lang_processor.process_input(text)
-                if lang_result["needs_translation"]:
+                # Check if lang_result is a dict (expected format)
+                if isinstance(lang_result, dict) and lang_result.get(
+                    "needs_translation", False
+                ):
                     text = lang_result["translated_text"]
                     # Store detected language for future use
-                    if lang_result["confidence"] > 0.5:
+                    if lang_result.get("confidence", 0) > 0.5:
                         self.preferences["language"] = lang_result["detected_language"]
             elif user_lang != "en":
                 lang_result = lang_processor.process_input(text, user_lang)
-                if lang_result["needs_translation"]:
+                # Check if lang_result is a dict (expected format)
+                if isinstance(lang_result, dict) and lang_result.get(
+                    "needs_translation", False
+                ):
                     text = lang_result["translated_text"]
         except ImportError:
             # Language support not available
