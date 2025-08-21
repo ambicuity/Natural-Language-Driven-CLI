@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from nlcli.engine import plan_and_generate, explain
+from nlcli.engine import plan_and_generate, explain, create_llm_from_config
 from nlcli.safety import guard
 from nlcli.context import SessionContext
 from nlcli.registry import load_tools
@@ -64,7 +64,14 @@ def repl() -> None:
     # Initialize components
     ctx = SessionContext()
     tools = load_tools()
+    llm = create_llm_from_config()  # Initialize LLM (may be disabled)
     history = FileHistory(".nlcli_history")
+    
+    # Show LLM status if enabled
+    if llm.is_available():
+        console.print("🧠 Local LLM integration is enabled", style="dim green")
+    else:
+        console.print("💡 Tip: Set NLCLI_LLM_ENABLED=true to enable local LLM integration", style="dim yellow")
     
     while True:
         try:
@@ -100,7 +107,7 @@ def repl() -> None:
             # Process natural language input
             try:
                 # Plan and generate command
-                intent = plan_and_generate(nl_input, ctx, tools)
+                intent = plan_and_generate(nl_input, ctx, tools, llm)
                 
                 if intent is None:
                     console.print("❌ Sorry, I couldn't understand that request.", style="red")
