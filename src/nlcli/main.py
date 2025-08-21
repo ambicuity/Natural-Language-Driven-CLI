@@ -599,7 +599,7 @@ def repl() -> None:
                     telemetry.record_command_execution(
                         command=intent.command,
                         success=result.success,
-                        duration=result.execution_time or 0,
+                        duration=result.duration_ms or 0,
                         tool_name=intent.tool_name,
                         confidence=intent.confidence,
                     )
