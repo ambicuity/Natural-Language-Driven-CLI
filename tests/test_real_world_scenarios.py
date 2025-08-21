@@ -203,9 +203,12 @@ class TestRealWorldNetworking(unittest.TestCase):
         # Accept any download-related tool or fallback
         acceptable_tools = ["download_file", "wget", "curl", "list_files"]
         self.assertIn(intent.tool_name, acceptable_tools)
-        
+
         # The command should at least contain some download mechanism
-        self.assertTrue(any(tool in intent.command.lower() for tool in ["wget", "curl", "download"]) or intent.tool_name in acceptable_tools)
+        self.assertTrue(
+            any(tool in intent.command.lower() for tool in ["wget", "curl", "download"])
+            or intent.tool_name in acceptable_tools
+        )
 
         # Should be safe to run
         self.assertTrue(guard(intent, self.ctx))
@@ -482,7 +485,13 @@ class TestRealWorldContextAwareness(unittest.TestCase):
 
         self.assertIsNotNone(intent_1)
         # Accept reasonable file-finding tools
-        acceptable_tools_1 = ["find_files", "find", "du", "ls", "git_show"]  # git_show can be selected by heuristics
+        acceptable_tools_1 = [
+            "find_files",
+            "find",
+            "du",
+            "ls",
+            "git_show",
+        ]  # git_show can be selected by heuristics
         self.assertIn(intent_1.tool_name, acceptable_tools_1)
 
         # Update context with first command
@@ -517,7 +526,9 @@ class TestRealWorldContextAwareness(unittest.TestCase):
                 self.assertTrue(requires_confirmation(intent_3))
             else:
                 # If interpreted safely, that's acceptable defensive behavior
-                self.assertIn(intent_3.tool_name, ["find_files", "ls", "find", "git_show"])
+                self.assertIn(
+                    intent_3.tool_name, ["find_files", "ls", "find", "git_show"]
+                )
                 self.assertEqual(intent_3.danger_level, "read_only")
 
     def test_pronoun_resolution_with_context(self):
