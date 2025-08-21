@@ -136,6 +136,54 @@ class ToolRegistry:
             
             score = max(0, score - penalty)
         
+        # Package manager specific boosting
+        if tool.name.startswith("apt_"):
+            # Strong boost for apt tools when "apt" is explicitly mentioned
+            if "apt" in nl_input.lower():
+                score += 2.0  # High priority boost for explicit apt commands
+            # Specific command boosting
+            if tool.name == "apt_search" and "search" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "apt_info" and "info" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "apt_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
+                score += 0.5
+        elif tool.name.startswith("brew_"):
+            # Strong boost for brew tools when "brew" is explicitly mentioned
+            if any(term in nl_input.lower() for term in ["brew", "homebrew"]):
+                score += 2.0  # High priority boost for explicit brew commands
+            # Specific command boosting
+            if tool.name == "brew_search" and "search" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "brew_info" and "info" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "brew_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
+                score += 0.5
+        elif tool.name.startswith("git_"):
+            # Strong boost for git tools when "git" is explicitly mentioned
+            if "git" in nl_input.lower():
+                score += 2.0  # High priority boost for explicit git commands
+            # Specific git command boosting based on exact command match
+            if tool.name == "git_status" and "status" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_log" and ("log" in nl_input.lower() or any(phrase in nl_input.lower() for phrase in ["last", "commits", "history"])):
+                score += 0.8
+            elif tool.name == "git_diff" and "diff" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_branch" and "branch" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_show" and "show" in nl_input.lower() and "commits" not in nl_input.lower():
+                score += 0.5
+        
+        # Process management specific boosting
+        if tool.name in ["kill_process", "process_by_port"]:
+            # Boost for process-killing terms
+            if any(term in nl_input.lower() for term in ["kill", "terminate", "stop"]):
+                score += 1.5
+            # Boost for port-specific terms 
+            if "port" in nl_input.lower() and tool.name == "process_by_port":
+                score += 1.5
+        
         if tool.name == "find_files":
             # Boost for file-finding terms
             find_terms = ["find", "files", "locate", "show"]
@@ -158,48 +206,8 @@ class ToolRegistry:
             if any(phrase in nl_input.lower() for phrase in ["list files", "show files", "ls"]):
                 score += 0.6
         
-        elif tool.name.startswith("brew_"):
-            # Boost for brew-related commands
-            if "brew" in nl_input.lower() or "homebrew" in nl_input.lower():
-                score += 0.8
-            # Specific command boosting
-            if tool.name == "brew_search" and "search" in nl_input.lower():
-                score += 0.5
-            elif tool.name == "brew_info" and "info" in nl_input.lower():
-                score += 0.5
-            elif tool.name == "brew_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
-                score += 0.5
         
-        elif tool.name.startswith("apt_"):
-            # Boost for apt-related commands
-            if "apt" in nl_input.lower():
-                score += 0.8
-            # Specific command boosting
-            if tool.name == "apt_search" and "search" in nl_input.lower():
-                score += 0.5
-            elif tool.name == "apt_info" and "info" in nl_input.lower():
-                score += 0.5
-            elif tool.name == "apt_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
-                score += 0.5
-        
-        elif tool.name.startswith("git_"):
-            # Boost for git-related commands
-            if "git" in nl_input.lower():
-                score += 0.8
-            
-            # Specific git command boosting based on exact command match
-            if tool.name == "git_status" and "status" in nl_input.lower():
-                score += 0.8
-            elif tool.name == "git_log" and ("log" in nl_input.lower() or any(phrase in nl_input.lower() for phrase in ["last", "commits", "history"])):
-                score += 0.8
-            elif tool.name == "git_diff" and "diff" in nl_input.lower():
-                score += 0.8
-            elif tool.name == "git_branch" and "branch" in nl_input.lower():
-                score += 0.8
-            elif tool.name == "git_show" and "show" in nl_input.lower() and "commits" not in nl_input.lower():
-                score += 0.5
-        
-        return min(score, 1.0)  # Cap at 1.0
+        return score  # Remove the 1.0 cap to allow prioritization
     
     def extract_args(self, tool: ToolSchema, nl_input: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Extract arguments from natural language input for a specific tool."""
