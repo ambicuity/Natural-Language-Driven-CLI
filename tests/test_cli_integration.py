@@ -20,13 +20,13 @@ class TestCLIIntegration(unittest.TestCase):
         if extra_args:
             args.extend(extra_args)
         args.extend(["--batch-commands", command])
-        
+
         result = subprocess.run(
             args,
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
         return result
 
@@ -34,17 +34,19 @@ class TestCLIIntegration(unittest.TestCase):
         """Test file operations through CLI interface."""
         commands = [
             "show files >500MB modified yesterday",
-            "find all .py files in current directory", 
+            "find all .py files in current directory",
             "search for 'import' inside python files",
             "what's taking up space in current directory",
-            "list directories sorted by size"
+            "list directories sorted by size",
         ]
-        
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
                 # Should succeed (exit code 0) or have reasonable error
-                self.assertIn(result.returncode, [0, 1])  # 1 is ok for some planning failures
+                self.assertIn(
+                    result.returncode, [0, 1]
+                )  # 1 is ok for some planning failures
                 # Should not crash
                 self.assertNotIn("Traceback", result.stderr)
 
@@ -52,10 +54,10 @@ class TestCLIIntegration(unittest.TestCase):
         """Test process management through CLI interface."""
         commands = [
             "list processes using port 8080",
-            "show top 5 CPU consuming processes", 
-            "display system resource usage"
+            "show top 5 CPU consuming processes",
+            "display system resource usage",
         ]
-        
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
@@ -69,9 +71,9 @@ class TestCLIIntegration(unittest.TestCase):
         commands = [
             "ping google.com",
             "check what services are listening on ports",
-            "resolve DNS for openai.com"
+            "resolve DNS for openai.com",
         ]
-        
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
@@ -86,9 +88,9 @@ class TestCLIIntegration(unittest.TestCase):
             "git status",
             "git log last 3 commits",
             "list installed apt packages",
-            "show details of package curl"
+            "show details of package curl",
         ]
-        
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
@@ -102,22 +104,22 @@ class TestCLIIntegration(unittest.TestCase):
         dangerous_commands = [
             "rm -rf /",
             "chmod -R 777 *",
-            "dd if=/dev/zero of=/dev/sda"
+            "dd if=/dev/zero of=/dev/sda",
         ]
-        
+
         for cmd in dangerous_commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
                 # Should fail - dangerous commands should be blocked at planning stage
                 self.assertEqual(result.returncode, 1)
-                
+
                 # Should indicate command was not understood/blocked
                 output = result.stdout + result.stderr
                 self.assertTrue(
-                    "couldn't understand" in output.lower() or 
-                    "could not generate" in output.lower() or
-                    "Command blocked" in output or
-                    "blocked" in output.lower()
+                    "couldn't understand" in output.lower()
+                    or "could not generate" in output.lower()
+                    or "Command blocked" in output
+                    or "blocked" in output.lower()
                 )
 
     def test_multi_language_support(self):
@@ -125,10 +127,10 @@ class TestCLIIntegration(unittest.TestCase):
         # Test with language parameter
         commands = [
             ("buscar archivos grandes", "es"),
-            ("lister tous les fichiers", "fr"),  
-            ("zeige alle dateien", "de")
+            ("lister tous les fichiers", "fr"),
+            ("zeige alle dateien", "de"),
         ]
-        
+
         for cmd, lang in commands:
             with self.subTest(command=cmd, language=lang):
                 result = self.run_nlcli_command(cmd, ["--lang", lang])
@@ -146,11 +148,11 @@ class TestCLIIntegration(unittest.TestCase):
 > show system resource usage
 > ping localhost
 """
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.nlcli', delete=False) as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".nlcli", delete=False) as f:
             f.write(script_content)
             script_path = f.name
-        
+
         try:
             # Test batch script execution
             result = subprocess.run(
@@ -158,16 +160,16 @@ class TestCLIIntegration(unittest.TestCase):
                 cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
-            
+
             # Should succeed
             self.assertIn(result.returncode, [0, 1])
             # Should not crash
             self.assertNotIn("Traceback", result.stderr)
             # Should execute multiple commands
             self.assertIn("batch", result.stdout.lower())
-            
+
         finally:
             Path(script_path).unlink()
 
@@ -178,17 +180,17 @@ class TestCLIIntegration(unittest.TestCase):
             ["python", "-m", "nlcli.main", "--help"],
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
-            text=True
+            text=True,
         )
         self.assertEqual(result.returncode, 0)
         self.assertIn("Natural Language Driven CLI", result.stdout)
-        
+
         # Test version
         result = subprocess.run(
             ["python", "-m", "nlcli.main", "--version"],
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
-            text=True
+            text=True,
         )
         self.assertEqual(result.returncode, 0)
 
@@ -196,9 +198,9 @@ class TestCLIIntegration(unittest.TestCase):
         """Test Docker plugin functionality (if available)."""
         commands = [
             "show docker containers",
-            "list all docker containers including stopped"
+            "list all docker containers including stopped",
         ]
-        
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
@@ -211,20 +213,21 @@ class TestCLIIntegration(unittest.TestCase):
         """Test context awareness through batch commands."""
         commands = [
             "find large files in Downloads",
-            "now only show videos", 
-            "show file details"
+            "now only show videos",
+            "show file details",
         ]
-        
+
         # Test as batch commands to simulate context
         result = subprocess.run(
-            ["python", "-m", "nlcli.main", "--dry-run"] + 
-            ["--batch-commands"] + commands,
+            ["python", "-m", "nlcli.main", "--dry-run"]
+            + ["--batch-commands"]
+            + commands,
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
-        
+
         # Should succeed or have reasonable error (including exit code 2 for some errors)
         self.assertIn(result.returncode, [0, 1, 2])
         # Should not crash
@@ -234,12 +237,8 @@ class TestCLIIntegration(unittest.TestCase):
         """Test advanced CLI features."""
         # These might be handled as special commands in REPL
         # or as regular tools, depending on implementation
-        commands = [
-            "performance",
-            "show system information",
-            "list available tools"
-        ]
-        
+        commands = ["performance", "show system information", "list available tools"]
+
         for cmd in commands:
             with self.subTest(command=cmd):
                 result = self.run_nlcli_command(cmd)
@@ -258,7 +257,7 @@ class TestCLIErrorHandling(unittest.TestCase):
             ["python", "-m", "nlcli.main", "--batch", "/nonexistent/file.nlcli"],
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
-            text=True
+            text=True,
         )
         # Should fail gracefully (exit code 1 or 2 are both acceptable for errors)
         self.assertIn(result.returncode, [1, 2])
@@ -272,7 +271,7 @@ class TestCLIErrorHandling(unittest.TestCase):
             ["python", "-m", "nlcli.main", "--dry-run", "--batch-commands", ""],
             cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
             capture_output=True,
-            text=True
+            text=True,
         )
         # Should handle gracefully
         self.assertIn(result.returncode, [0, 1])
@@ -283,17 +282,24 @@ class TestCLIErrorHandling(unittest.TestCase):
             "asdfasdf random nonsense",
             "123456789",
             "!@#$%^&*()",
-            "a" * 1000  # Very long input
+            "a" * 1000,  # Very long input
         ]
-        
+
         for cmd in weird_commands:
             with self.subTest(command=cmd):
                 result = subprocess.run(
-                    ["python", "-m", "nlcli.main", "--dry-run", "--batch-commands", cmd],
+                    [
+                        "python",
+                        "-m",
+                        "nlcli.main",
+                        "--dry-run",
+                        "--batch-commands",
+                        cmd,
+                    ],
                     cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
                     capture_output=True,
                     text=True,
-                    timeout=10
+                    timeout=10,
                 )
                 # Should handle gracefully without crashing
                 self.assertIn(result.returncode, [0, 1])

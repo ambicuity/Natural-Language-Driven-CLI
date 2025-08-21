@@ -378,26 +378,26 @@ class ToolRegistry:
             # First check for file extension patterns
             if arg_name == "name":
                 extension_patterns = [
-                    r'find\s+([*.]?\w+)\s+files',  # "find .log files", "find *.log files"
-                    r'([*.]?\w+)\s+files?\s+modified',  # ".log files modified"
-                    r'([*.]?\w+)\s+files?\s+(created|modified|updated)',
-                    r'(\.?\w+)\s+files',  # ".log files"
+                    r"find\s+([*.]?\w+)\s+files",  # "find .log files", "find *.log files"
+                    r"([*.]?\w+)\s+files?\s+modified",  # ".log files modified"
+                    r"([*.]?\w+)\s+files?\s+(created|modified|updated)",
+                    r"(\.?\w+)\s+files",  # ".log files"
                 ]
-                
+
                 for pattern in extension_patterns:
                     match = re.search(pattern, nl_input, re.IGNORECASE)
                     if match:
                         file_ext = match.group(1)
                         # Convert to proper wildcard format
-                        if file_ext.startswith('.'):
+                        if file_ext.startswith("."):
                             return f"*{file_ext}"
-                        elif file_ext.startswith('*'):
+                        elif file_ext.startswith("*"):
                             return file_ext
-                        elif '.' in file_ext:
+                        elif "." in file_ext:
                             return f"*{file_ext}"
                         else:
                             return f"*.{file_ext}"
-            
+
             # Look for quoted strings or specific patterns
             patterns_to_try = [
                 r'search\s+for\s+["\']?([^"\']+?)["\']?\s+in',  # "search for TODO in"
@@ -572,15 +572,15 @@ class ToolRegistry:
         ):
             positive_indicators = ["with", "show", "include", "detailed", "verbose"]
             negative_indicators = ["without", "no", "skip", "omit"]
-            
+
             # Check for explicit positive indicators
             if any(indicator in nl_input.lower() for indicator in positive_indicators):
                 return True
-            
-            # Check for explicit negative indicators  
+
+            # Check for explicit negative indicators
             if any(indicator in nl_input.lower() for indicator in negative_indicators):
                 return False
-            
+
             # If neither positive nor negative indicators found, return None to use default
             return None
 
