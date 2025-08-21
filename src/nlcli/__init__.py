@@ -6,7 +6,7 @@ A cross-platform command-line companion that turns natural language
 with dry-runs, confirmations, and a plugin ecosystem.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.3"
 __author__ = "Natural Language CLI Team"
 __description__ = "Turn natural language into safe system commands"
 

@@ -693,7 +693,7 @@ def repl() -> None:
     default=True,
     help="Stop batch execution on first error",
 )
-@click.version_option(version="0.1.0")
+@click.version_option(version="0.1.3")
 def main(
     dry_run: bool,
     explain: bool,

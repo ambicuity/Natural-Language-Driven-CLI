@@ -61,3 +61,18 @@ On Windows, you might need to add the Scripts directory to your PATH:
 ```
 %APPDATA%\Python\PythonXX\Scripts
 ```
+
+### Legacy Dependency Issues
+If you encounter build errors related to `fann2` or `padatious` dependencies, this was an issue with older PyPI versions (≤ 0.1.2). These dependencies have been removed in version 0.1.3 and later.
+
+To fix this:
+```bash
+# Clear pip cache and upgrade
+pip cache purge
+pip install --upgrade --no-cache-dir nlcli
+
+# If still having issues, install from source
+git clone https://github.com/ambicuity/Natural-Language-Driven-CLI.git
+cd Natural-Language-Driven-CLI
+pip install -e .
+```
