@@ -847,8 +847,12 @@ class ToolRegistry:
             name = args["name"]
             return f"ps aux | grep '{name}' | grep -v grep"
         else:
-            # Simplified command - use ps with sorting built-in
-            return f"ps aux --sort=-pcpu | head -{limit + 1}"
+            # Use built-in sorting for CPU, simplified command
+            if sort == "cpu":
+                return f"ps aux --sort=-pcpu | head -{limit}"
+            else:
+                # Fall back to original complex format for non-CPU sorting to maintain compatibility
+                return f"ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}"
 
     def _generate_lsof_command(self, args: Dict[str, Any]) -> str:
         """Generate lsof command for port lookup."""
