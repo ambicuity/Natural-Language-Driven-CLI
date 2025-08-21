@@ -73,8 +73,12 @@ Thumbs.db
 # NLCLI specific
 .nlcli/
 .nlcli_trash/
+.nlcli_history
 *.nlcli_session
 *.nlcli_audit
+*.json.bak
+nlcli_enterprise.json
+nlcli_audit.log
 
 # Temporary files
 /tmp/
