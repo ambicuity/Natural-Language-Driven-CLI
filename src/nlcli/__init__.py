@@ -33,3 +33,22 @@ __all__ = [
     "execute",
     "dry_run",
 ]
+
+# Phase 3 Advanced Features
+try:
+    from nlcli.plugins import PluginManager, get_plugin_manager
+    from nlcli.language import MultiLanguageProcessor, get_language_processor
+    from nlcli.cloud_llm import CloudLLMService, get_cloud_llm_service
+    from nlcli.advanced_context import AdvancedContextManager, get_advanced_context_manager
+    from nlcli.batch import BatchModeManager, BatchScriptParser, get_batch_manager
+    
+    __all__.extend([
+        "PluginManager", "get_plugin_manager",
+        "MultiLanguageProcessor", "get_language_processor", 
+        "CloudLLMService", "get_cloud_llm_service",
+        "AdvancedContextManager", "get_advanced_context_manager",
+        "BatchModeManager", "BatchScriptParser", "get_batch_manager"
+    ])
+except ImportError:
+    # Phase 3 features not available
+    pass

@@ -54,9 +54,10 @@ class SessionContext:
             "confirm_by_default": True,
             "allowed_directories": [str(Path.home())],
             "model_preference": "local",
-            "language": "en",
+            "language": os.environ.get("NLCLI_DEFAULT_LANG", "en"),
             "max_results": 50,
-            "trash_instead_of_delete": True
+            "trash_instead_of_delete": True,
+            "auto_detect_language": os.environ.get("NLCLI_AUTO_DETECT_LANG", "true").lower() == "true"
         }
     
     def clear(self) -> None:
@@ -116,6 +117,29 @@ class SessionContext:
     
     def resolve_pronouns(self, text: str) -> str:
         """Resolve pronouns like 'those', 'them', 'same' to recent context."""
+        # First process multi-language input
+        try:
+            from nlcli.language import get_language_processor
+            lang_processor = get_language_processor()
+            
+            user_lang = self.preferences.get("language", "en")
+            auto_detect = self.preferences.get("auto_detect_language", True)
+            
+            if auto_detect:
+                lang_result = lang_processor.process_input(text)
+                if lang_result["needs_translation"]:
+                    text = lang_result["translated_text"]
+                    # Store detected language for future use
+                    if lang_result["confidence"] > 0.5:
+                        self.preferences["language"] = lang_result["detected_language"]
+            elif user_lang != "en":
+                lang_result = lang_processor.process_input(text, user_lang)
+                if lang_result["needs_translation"]:
+                    text = lang_result["translated_text"]
+        except ImportError:
+            # Language support not available
+            pass
+        
         pronouns = {
             "those": self.recent_files[-5:] if self.recent_files else [],
             "them": self.recent_files[-5:] if self.recent_files else [],

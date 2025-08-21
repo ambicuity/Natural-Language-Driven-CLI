@@ -22,7 +22,7 @@ class TestLocalLLM(unittest.TestCase):
         
         response = self.llm.enhance_intent_understanding("test input", {})
         self.assertFalse(response.success)
-        self.assertEqual(response.error, "LLM not available")
+        self.assertEqual(response.error, "Neither local nor cloud LLM available")
     
     def test_enabled_llm_placeholder(self):
         """Test enabled LLM with placeholder functionality."""

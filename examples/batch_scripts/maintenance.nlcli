@@ -1,0 +1,42 @@
+# Example NLCLI Batch Script
+@name System Maintenance Script
+@description Perform routine system maintenance and cleanup
+@version 1.0
+@author NLCLI Team
+
+# Configuration variables
+TEMP_DIR=/tmp
+BACKUP_DIR=~/backup
+LOG_FILE=/tmp/maintenance.log
+
+# Step 1: Check disk usage
+> show disk usage for home directory
+timeout: 30
+
+# Step 2: Find large files that might need cleanup
+> find files larger than 100MB modified more than 30 days ago
+depends: 1
+timeout: 60
+var: MAX_SIZE=100MB
+var: AGE_DAYS=30
+
+# Step 3: Create backup directory if needed
+> create directory ${BACKUP_DIR}
+condition: success
+retry: 1
+
+# Step 4: List processes using high memory
+> show processes using more than 500MB memory
+depends: 1
+timeout: 45
+
+# Step 5: Clean up temporary files (careful!)
+> find files in ${TEMP_DIR} older than 7 days
+depends: 4
+condition: success
+timeout: 30
+
+# Step 6: Generate system report
+> show system information
+depends: 5
+condition: always

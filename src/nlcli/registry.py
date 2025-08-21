@@ -48,6 +48,7 @@ class ToolRegistry:
     def __init__(self):
         self.tools: Dict[str, ToolSchema] = {}
         self._load_builtin_tools()
+        self._load_plugins()
     
     def register_tool(self, schema: ToolSchema) -> None:
         """Register a new tool schema."""
@@ -982,6 +983,35 @@ class ToolRegistry:
             
         for tool in get_git_tools():
             self.register_tool(tool)
+    
+    def _load_plugins(self) -> None:
+        """Load external plugins."""
+        try:
+            from nlcli.plugins import get_plugin_manager
+            plugin_manager = get_plugin_manager()
+            plugin_manager.load_all_plugins()
+            
+            # Register all plugin tools
+            for tool in plugin_manager.get_all_tools():
+                self.register_tool(tool)
+                
+        except ImportError:
+            # Plugin system not available
+            pass
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to load plugins: {e}")
+    
+    def reload_plugins(self) -> None:
+        """Reload all plugins."""
+        # Remove existing plugin tools
+        plugin_tools = [name for name in self.tools.keys() if '_' in name and not name.startswith(('find', 'list', 'search', 'du', 'ps', 'kill', 'top', 'ping', 'curl', 'ss', 'netstat', 'dig', 'wget', 'ip', 'brew', 'apt', 'git'))]
+        for tool_name in plugin_tools:
+            self.tools.pop(tool_name, None)
+        
+        # Reload plugins
+        self._load_plugins()
 
 
 def load_tools() -> ToolRegistry:
