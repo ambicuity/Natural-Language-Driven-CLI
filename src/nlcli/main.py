@@ -323,10 +323,12 @@ def repl() -> None:
                     table.add_column("Value", justify="right")
 
                     table.add_row("Total Operations", str(metrics["total_operations"]))
-                    table.add_row("Success Rate", f"{metrics['success_rate']:.1%}")
-                    table.add_row(
-                        "Avg Duration", f"{metrics['duration_stats']['avg']:.3f}s"
-                    )
+                    if "success_rate" in metrics:
+                        table.add_row("Success Rate", f"{metrics['success_rate']:.1%}")
+                    if "duration_stats" in metrics:
+                        table.add_row(
+                            "Avg Duration", f"{metrics['duration_stats']['avg']:.3f}s"
+                        )
 
                     if current_usage:
                         table.add_row("CPU Usage", f"{current_usage.cpu_percent:.1f}%")
