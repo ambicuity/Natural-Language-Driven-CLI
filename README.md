@@ -22,10 +22,24 @@ pip install -e .
 # Start the interactive CLI
 nlcli
 
+# Execute batch script
+nlcli --batch script.nlcli
+
+# Execute multiple commands in batch mode
+nlcli --batch-commands "find large files" --batch-commands "list directories"
+
+# Set language preference
+nlcli --lang es
+
 # Try some natural language commands
 › show files >1GB modified this week
 › find all .py files containing TODO  
 › list processes using port 3000
+
+# Multi-language examples
+› mostrar archivos grandes (Spanish)
+› lister tous les fichiers (French)
+› alle dateien anzeigen (German)
 ```
 
 ## 🌟 Features
@@ -49,6 +63,11 @@ nlcli
 - **Package info**: brew/apt package details, search, list installed packages
 - **Git operations**: read-only git commands (status, log, diff, branches, etc.)
 - **LLM integration**: optional local language model for enhanced understanding
+- **Plugin system**: extensible architecture with custom tool plugins
+- **Multi-language support**: natural language input in multiple languages
+- **Cloud LLM fallback**: automatic fallback to cloud providers (OpenAI, Anthropic, Google)
+- **Advanced context**: semantic understanding with conversation memory
+- **Batch mode**: execute multiple commands from scripts or command line
 
 ## 📖 Examples
 
@@ -82,6 +101,28 @@ nlcli
 
 › delete those files
 ⚠️  This will modify your system. Continue? [y/N]
+```
+
+### Plugin Management
+```bash
+› plugins              # Show loaded plugins
+› reload plugins       # Reload all plugins
+```
+
+### Language Support
+```bash  
+› lang status          # Show language support status
+```
+
+### Cloud LLM
+```bash
+› cloud status         # Show cloud provider status
+```
+
+### Advanced Context
+```bash
+› context              # Show basic context
+› context advanced     # Show advanced context analysis
 ```
 
 ## 🏗️ Architecture
@@ -213,6 +254,81 @@ def get_my_tools():
             keywords=["docker", "containers", "ps"]
         )
     ]
+
+def get_plugin_info():
+    return {
+        "name": "docker",
+        "version": "1.0.0",
+        "description": "Docker container management tools",
+        "author": "Your Name"
+    }
+```
+
+Save as `~/.nlcli/plugins/docker_plugin.py` and it will be automatically loaded.
+
+## 🌐 Multi-language Support
+
+NLCLI supports natural language input in multiple languages:
+
+- **English**: "find large files"
+- **Spanish**: "buscar archivos grandes"  
+- **French**: "chercher gros fichiers"
+- **German**: "große dateien finden"
+- **Portuguese**: "encontrar arquivos grandes"
+- **Italian**: "trova file grandi"
+
+Language detection is automatic, or set your preference:
+```bash
+export NLCLI_DEFAULT_LANG=es
+nlcli --lang fr
+```
+
+## ☁️ Cloud LLM Integration
+
+Enable cloud LLM providers for enhanced understanding:
+
+```bash
+# OpenAI
+export OPENAI_API_KEY=your_key
+export NLCLI_CLOUD_LLM_ENABLED=true
+
+# Anthropic  
+export ANTHROPIC_API_KEY=your_key
+
+# Google
+export GOOGLE_API_KEY=your_key
+```
+
+The system automatically falls back to cloud providers when local LLM is unavailable.
+
+## 📝 Batch Mode & Scripting
+
+Execute multiple commands from scripts:
+
+```bash
+# Create a batch script (script.nlcli)
+@name File Cleanup Script
+@description Clean up large and old files
+
+BASE_DIR=/tmp
+LOG_FILE=/tmp/cleanup.log
+
+> find files larger than 100MB in ${BASE_DIR}
+timeout: 30
+> delete old files older than 30 days
+depends: 1
+condition: success
+retry: 2
+```
+
+Execute the script:
+```bash
+nlcli --batch script.nlcli
+```
+
+Or run commands directly:
+```bash
+nlcli --batch-commands "find large files" --batch-commands "show disk usage"
 ```
 
 ## 🗺️ Roadmap
@@ -231,12 +347,12 @@ def get_my_tools():
 - [x] Git read-only operations
 - [x] Local LLM integration
 
-### Phase 3 - Advanced Features
-- [ ] Plugin SDK and ecosystem
-- [ ] Multi-language support
-- [ ] Cloud LLM fallback
-- [ ] Advanced context understanding
-- [ ] Scripting and batch mode
+### Phase 3 - Advanced Features ✅
+- [x] Plugin SDK and ecosystem
+- [x] Multi-language support
+- [x] Cloud LLM fallback
+- [x] Advanced context understanding
+- [x] Scripting and batch mode
 
 ### Phase 4 - Production Ready
 - [ ] Comprehensive security audit
