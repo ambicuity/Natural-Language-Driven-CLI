@@ -142,6 +142,62 @@ class ToolRegistry:
             for term in find_terms:
                 if term in nl_input.lower():
                     score += 0.3
+            
+            # Reduce score if it's clearly a listing request
+            if any(phrase in nl_input.lower() for phrase in ["list files", "show files", "ls"]):
+                score = max(0, score - 0.5)
+        
+        elif tool.name == "list_files":
+            # Boost for listing terms
+            list_terms = ["list", "show", "ls", "directory", "contents"]
+            for term in list_terms:
+                if term in nl_input.lower():
+                    score += 0.4
+            
+            # Extra boost for explicit listing requests
+            if any(phrase in nl_input.lower() for phrase in ["list files", "show files", "ls"]):
+                score += 0.6
+        
+        elif tool.name.startswith("brew_"):
+            # Boost for brew-related commands
+            if "brew" in nl_input.lower() or "homebrew" in nl_input.lower():
+                score += 0.8
+            # Specific command boosting
+            if tool.name == "brew_search" and "search" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "brew_info" and "info" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "brew_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
+                score += 0.5
+        
+        elif tool.name.startswith("apt_"):
+            # Boost for apt-related commands
+            if "apt" in nl_input.lower():
+                score += 0.8
+            # Specific command boosting
+            if tool.name == "apt_search" and "search" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "apt_info" and "info" in nl_input.lower():
+                score += 0.5
+            elif tool.name == "apt_list" and any(word in nl_input.lower() for word in ["list", "installed"]):
+                score += 0.5
+        
+        elif tool.name.startswith("git_"):
+            # Boost for git-related commands
+            if "git" in nl_input.lower():
+                score += 0.8
+            
+            # Specific git command boosting based on exact command match
+            if tool.name == "git_status" and "status" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_log" and ("log" in nl_input.lower() or any(phrase in nl_input.lower() for phrase in ["last", "commits", "history"])):
+                score += 0.8
+            elif tool.name == "git_diff" and "diff" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_branch" and "branch" in nl_input.lower():
+                score += 0.8
+            elif tool.name == "git_show" and "show" in nl_input.lower() and "commits" not in nl_input.lower():
+                score += 0.5
         
         return min(score, 1.0)  # Cap at 1.0
     
@@ -348,8 +404,10 @@ class ToolRegistry:
         # Count/limit extraction
         elif arg_name in ("count", "limit"):
             count_patterns = [
+                r'last\s+(\d+)',
                 r'(\d+)\s+times',
                 r'(\d+)\s+pings?',
+                r'(\d+)\s+commits?',
                 r'top\s+(\d+)',
                 r'first\s+(\d+)',
                 r'limit\s+(\d+)',
@@ -409,6 +467,65 @@ class ToolRegistry:
             positive_indicators = ["with", "show", "include", "detailed", "verbose"]
             return any(indicator in nl_input.lower() for indicator in positive_indicators)
         
+        # Package name extraction
+        elif arg_name == "package":
+            package_patterns = [
+                r'brew\s+search\s+([a-zA-Z0-9_.-]+)',
+                r'brew\s+info\s+([a-zA-Z0-9_.-]+)', 
+                r'apt\s+search\s+([a-zA-Z0-9_.-]+)',
+                r'apt\s+show\s+([a-zA-Z0-9_.-]+)',
+                r'apt\s+info\s+for\s+([a-zA-Z0-9_.-]+)',
+                r'search\s+for\s+([a-zA-Z0-9_.-]+)\s+package',
+                r'search\s+for\s+([a-zA-Z0-9_.-]+)',
+                r'info\s+(?:about\s+|for\s+)?([a-zA-Z0-9_.-]+)',
+                r'show\s+([a-zA-Z0-9_.-]+)',
+                r'package\s+([a-zA-Z0-9_.-]+)',
+                r'([a-zA-Z0-9_.-]+)\s+package',
+            ]
+            for pattern in package_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    package = match.group(1)
+                    # Don't return common words
+                    if package not in ["for", "about", "info", "show", "search", "package", "in", "brew", "apt"]:
+                        return package
+        
+        # Git-specific extractions
+        elif arg_name == "commit":
+            commit_patterns = [
+                r'commit\s+([a-f0-9]{6,40})',  # commit hash
+                r'show\s+([a-f0-9]{6,40})',  # show hash
+                r'([a-f0-9]{6,40})',  # bare hash
+            ]
+            for pattern in commit_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    return match.group(1)
+        
+        elif arg_name == "author":
+            author_patterns = [
+                r'author\s+([a-zA-Z0-9_-]+)',
+                r'by\s+([a-zA-Z0-9_-]+)',
+                r'from\s+([a-zA-Z0-9_-]+)',
+            ]
+            for pattern in author_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    return match.group(1)
+        
+        elif arg_name == "file" and any(word in nl_input.lower() for word in ["diff", "blame"]):
+            # File name for git operations
+            file_patterns = [
+                r'diff\s+([a-zA-Z0-9_./+-]+)',
+                r'blame\s+([a-zA-Z0-9_./+-]+)',
+                r'for\s+([a-zA-Z0-9_./+-]+)',
+                r'file\s+([a-zA-Z0-9_./+-]+)',
+            ]
+            for pattern in file_patterns:
+                match = re.search(pattern, nl_input)
+                if match:
+                    return match.group(1)
+        
         return None
     
     def generate_command(self, tool: ToolSchema, args: Dict[str, Any]) -> str:
@@ -449,6 +566,12 @@ class ToolRegistry:
             return self._generate_wget_command(args)
         elif tool.name == "network_interfaces":
             return self._generate_ip_command(args)
+        elif tool.name in ("brew_search", "brew_info", "brew_list"):
+            return self._generate_brew_command(tool.name, args)
+        elif tool.name in ("apt_search", "apt_info", "apt_list"):
+            return self._generate_apt_command(tool.name, args)
+        elif tool.name in ("git_status", "git_log", "git_diff", "git_branch", "git_show", "git_remote", "git_blame"):
+            return self._generate_git_command(tool.name, args)
         
         # Apply clauses based on arguments for find_files
         clauses = generator.get("clauses", {})
@@ -696,6 +819,104 @@ class ToolRegistry:
         else:
             return "ip addr show"
     
+    def _generate_brew_command(self, tool_name: str, args: Dict[str, Any]) -> str:
+        """Generate brew command."""
+        if tool_name == "brew_search":
+            package = args["package"]
+            if args.get("cask"):
+                return f"brew search --cask {package}"
+            else:
+                return f"brew search {package}"
+        elif tool_name == "brew_info":
+            package = args["package"]
+            return f"brew info {package}"
+        elif tool_name == "brew_list":
+            if args.get("versions"):
+                return "brew list --versions"
+            else:
+                return "brew list"
+        
+        return "brew"
+    
+    def _generate_apt_command(self, tool_name: str, args: Dict[str, Any]) -> str:
+        """Generate apt command."""
+        if tool_name == "apt_search":
+            package = args["package"]
+            return f"apt search {package}"
+        elif tool_name == "apt_info":
+            package = args["package"]
+            return f"apt show {package}"
+        elif tool_name == "apt_list":
+            if args.get("upgradable"):
+                return "apt list --upgradable"
+            else:
+                return "apt list --installed"
+        
+        return "apt"
+    
+    def _generate_git_command(self, tool_name: str, args: Dict[str, Any]) -> str:
+        """Generate git command."""
+        if tool_name == "git_status":
+            if args.get("short"):
+                return "git status -s"
+            else:
+                return "git status"
+        elif tool_name == "git_log":
+            flags = []
+            if args.get("oneline"):
+                flags.append("--oneline")
+            if args.get("graph"):
+                flags.append("--graph")
+            if args.get("author"):
+                flags.append(f"--author='{args['author']}'")
+            
+            limit = args.get("limit", 10)
+            flag_str = " ".join(flags)
+            return f"git log {flag_str} -{limit}".strip()
+        elif tool_name == "git_diff":
+            flags = []
+            if args.get("staged"):
+                flags.append("--staged")
+            if args.get("commit"):
+                flags.append(args["commit"])
+            if args.get("file"):
+                flags.append(args["file"])
+            
+            flag_str = " ".join(flags)
+            return f"git diff {flag_str}".strip()
+        elif tool_name == "git_branch":
+            flags = []
+            if args.get("remote"):
+                flags.append("-r")
+            elif args.get("all"):
+                flags.append("-a")
+            
+            flag_str = " ".join(flags)
+            return f"git branch {flag_str}".strip()
+        elif tool_name == "git_show":
+            flags = []
+            if args.get("stat"):
+                flags.append("--stat")
+            if args.get("commit"):
+                flags.append(args["commit"])
+            
+            flag_str = " ".join(flags)
+            return f"git show {flag_str}".strip()
+        elif tool_name == "git_remote":
+            if args.get("verbose"):
+                return "git remote -v"
+            else:
+                return "git remote"
+        elif tool_name == "git_blame":
+            file = args["file"]
+            if args.get("line_start") and args.get("line_end"):
+                line_range = f"-L {args['line_start']},{args['line_end']}"
+                return f"git blame {line_range} {file}"
+            else:
+                return f"git blame {file}"
+        
+        return "git"
+    
     def print_tools(self, console: Console) -> None:
         """Print available tools."""
         table = Table(title="Available Tools", border_style="green")
@@ -724,6 +945,8 @@ class ToolRegistry:
         from nlcli.tools.file_tools import get_file_tools
         from nlcli.tools.process_tools import get_process_tools
         from nlcli.tools.network_tools import get_network_tools
+        from nlcli.tools.package_tools import get_package_tools
+        from nlcli.tools.git_tools import get_git_tools
         
         for tool in get_file_tools():
             self.register_tool(tool)
@@ -732,6 +955,12 @@ class ToolRegistry:
             self.register_tool(tool)
             
         for tool in get_network_tools():
+            self.register_tool(tool)
+            
+        for tool in get_package_tools():
+            self.register_tool(tool)
+            
+        for tool in get_git_tools():
             self.register_tool(tool)
 
 

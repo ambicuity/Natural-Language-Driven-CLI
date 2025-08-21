@@ -43,7 +43,8 @@ ALLOWED_COMMANDS = {
     "find", "ls", "grep", "du", "stat", "cat", "head", "tail", "wc", "sort", "uniq",
     "awk", "sed", "cut", "tr", "xargs", "file", "which", "whereis", "pwd", "whoami",
     "date", "uptime", "df", "ps", "top", "netstat", "ss", "ping", "curl", "wget",
-    "git", "pip", "python", "python3", "node", "npm"
+    "git", "pip", "python", "python3", "node", "npm", "lsof", "kill", "pkill", "pstree", 
+    "free", "dig", "ip", "ifconfig", "brew", "apt", "apt-get", "apt-cache"
 }
 
 
@@ -150,18 +151,27 @@ class SafetyGuard:
     
     def _are_paths_safe(self, intent: Intent, context: SessionContext) -> bool:
         """Check if all paths in the command are within allowed directories."""
-        # Extract paths from arguments
+        # Extract paths from arguments (skip URL arguments)
         paths_to_check = []
         
-        if "path" in intent.args:
+        if "path" in intent.args and intent.args["path"] not in [".", "./"]:
             paths_to_check.append(intent.args["path"])
         
-        # Also check for paths in the raw command
-        command_paths = re.findall(r'([~/][^\s]+)', intent.command)
-        paths_to_check.extend(command_paths)
+        # Don't check URLs as paths
+        if intent.tool_name in ["http_request", "download_file"]:
+            return True  # URLs are not filesystem paths
+        
+        # Also check for paths in the raw command (but skip URLs)
+        if not intent.command.startswith("curl") and not intent.command.startswith("wget"):
+            command_paths = re.findall(r'([~/][^\s]+)', intent.command)
+            paths_to_check.extend(command_paths)
         
         for path_str in paths_to_check:
             try:
+                # Skip URLs
+                if path_str.startswith(("http://", "https://", "ftp://")):
+                    continue
+                    
                 # Resolve path
                 if path_str.startswith("~"):
                     path = Path.home() / path_str[2:]
