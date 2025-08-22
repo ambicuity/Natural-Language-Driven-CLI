@@ -11,21 +11,26 @@ from typing import Any, Dict, List, Optional
 def safe_unicode_text(text: str, fallback: str = None) -> str:
     """
     Return Unicode text if supported, otherwise return ASCII fallback.
-    
+
     Args:
         text: The Unicode text to display
         fallback: ASCII fallback text. If None, Unicode symbols are replaced with ASCII.
-    
+
     Returns:
         Safe text for the current console
     """
     if fallback is None:
         # Default fallback: replace common Unicode symbols
-        fallback = text.replace("🔍", "[SEARCH]").replace("🚀", "[RUN]").replace("⚠️", "[WARN]").replace("📁", "[DIR]")
-    
+        fallback = (
+            text.replace("🔍", "[SEARCH]")
+            .replace("🚀", "[RUN]")
+            .replace("⚠️", "[WARN]")
+            .replace("📁", "[DIR]")
+        )
+
     try:
         # Test if text can be encoded to UTF-8
-        text.encode('utf-8')
+        text.encode("utf-8")
         return text
     except UnicodeEncodeError:
         return fallback
