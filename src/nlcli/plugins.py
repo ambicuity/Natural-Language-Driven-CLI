@@ -272,7 +272,7 @@ def get_plugin_info():
     """Return plugin metadata."""
     return {
         "name": "example",
-        "version": "1.0.0", 
+        "version": "1.0.0",
         "description": "Example plugin demonstrating NLCLI plugin development",
         "author": "NLCLI Team",
         "website": "https://github.com/ambicuity/Natural-Language-Driven-CLI",

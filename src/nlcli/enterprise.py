@@ -1,6 +1,7 @@
 """
 Enterprise Features Module.
-Implements role-based access control, audit trails, policy enforcement, and configuration management.
+Implements role-based access control, audit trails, policy enforcement,
+and configuration management.
 """
 
 import hashlib

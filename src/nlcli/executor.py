@@ -197,9 +197,9 @@ class CommandExecutor:
     def _dry_run_ls(self, command: str, context: SessionContext) -> str:
         """Dry run explanation for ls command."""
         if "-l" in command:
-            return f"Would list files with detailed information"
+            return "Would list files with detailed information"
         else:
-            return f"Would list files"
+            return "Would list files"
 
     def _dry_run_grep(self, command: str, context: SessionContext) -> str:
         """Dry run explanation for grep command."""
