@@ -28,6 +28,7 @@ from nlcli.error_recovery import (
     ErrorRecoveryManager,
     ErrorSeverity,
     RetryConfig,
+    get_error_recovery_manager,
     graceful_fallback,
     with_retry,
 )
@@ -36,6 +37,7 @@ from nlcli.performance import (  # noqa: F401
     PerformanceProfiler,
     ResourceMonitor,
     cached,
+    get_performance_profiler,
     profile_operation,
 )
 from nlcli.security import (  # noqa: F401
@@ -45,6 +47,7 @@ from nlcli.security import (  # noqa: F401
     SecurityPolicy,
     VulnerabilityType,
     audit_command_security,
+    get_security_auditor,
 )
 from nlcli.telemetry import (  # noqa: F401
     EventLogger,
@@ -572,11 +575,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_global_managers(self):
         """Test global manager instances."""
-        from nlcli.enterprise import get_enterprise_manager
-        from nlcli.error_recovery import get_error_recovery_manager
-        from nlcli.performance import get_performance_profiler
-        from nlcli.security import get_security_auditor
-        from nlcli.telemetry import get_telemetry_manager
+        # Import functions that aren't already imported at module level
 
         # Test that managers are singletons
         auditor1 = get_security_auditor()

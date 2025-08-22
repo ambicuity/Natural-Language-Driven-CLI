@@ -354,7 +354,7 @@ def repl() -> None:
 
                     # Metrics summary
                     metrics = report["metrics"]
-                    console.print(f"\n📈 Metrics:")
+                    console.print("\n📈 Metrics:")
                     console.print(
                         f"  Commands executed: {metrics['counters'].get('commands_executed', 0)}"
                     )
@@ -368,7 +368,7 @@ def repl() -> None:
 
                     # Sessions
                     sessions = report["sessions"]
-                    console.print(f"\n👥 Sessions:")
+                    console.print("\n👥 Sessions:")
                     console.print(f"  Total: {sessions['total_sessions']}")
                     console.print(f"  Active: {sessions['active_sessions']}")
 
@@ -576,7 +576,7 @@ def repl() -> None:
                 # Confirmation for destructive operations
                 if intent.danger_level in ("destructive", "modify"):
                     confirmation = prompt(
-                        f"⚠️  This will modify your system. Continue? [y/N] "
+                        "⚠️  This will modify your system. Continue? [y/N] "
                     ).lower()
                     if confirmation not in ("y", "yes"):
                         console.print("Operation cancelled.", style="yellow")
@@ -643,7 +643,7 @@ def repl() -> None:
 
                     if recovery_result:
                         console.print(
-                            f"🔄 Error recovered automatically", style="green"
+                            "🔄 Error recovered automatically", style="green"
                         )
                     else:
                         console.print(f"❌ Error: {e}", style="red")
@@ -716,7 +716,7 @@ def main(
             from nlcli.language import get_language_processor
 
             _lang_processor = get_language_processor()  # noqa: F841
-            console.print(f"✅ Multi-language support enabled", style="green")
+            console.print("✅ Multi-language support enabled", style="green")
         except ImportError:
             console.print("⚠️  Multi-language support not available", style="yellow")
 

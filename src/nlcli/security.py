@@ -1,6 +1,7 @@
 """
 Enhanced Security Module for Production-Ready CLI.
-Implements comprehensive security auditing, vulnerability scanning, and policy enforcement.
+Implements comprehensive security auditing, vulnerability scanning,
+and policy enforcement.
 """
 
 import logging
