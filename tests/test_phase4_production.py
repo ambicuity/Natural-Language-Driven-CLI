@@ -3,16 +3,15 @@ Test Phase 4 Production Ready Features
 Tests for security, performance, error recovery, telemetry, and enterprise features.
 """
 
-import json
 import os
 import tempfile
 import time
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch  # noqa: F401
 
 from nlcli.context import Intent, SessionContext
-from nlcli.enterprise import (
+from nlcli.enterprise import (  # noqa: F401
     AuditLogger,
     EnterpriseManager,
     Permission,
@@ -32,14 +31,14 @@ from nlcli.error_recovery import (
     graceful_fallback,
     with_retry,
 )
-from nlcli.performance import (
+from nlcli.performance import (  # noqa: F401
     PerformanceCache,
     PerformanceProfiler,
     ResourceMonitor,
     cached,
     profile_operation,
 )
-from nlcli.security import (
+from nlcli.security import (  # noqa: F401
     CommandSanitizer,
     SecurityAuditor,
     SecurityLevel,
@@ -47,7 +46,7 @@ from nlcli.security import (
     VulnerabilityType,
     audit_command_security,
 )
-from nlcli.telemetry import (
+from nlcli.telemetry import (  # noqa: F401
     EventLogger,
     EventType,
     MetricsCollector,
@@ -294,7 +293,7 @@ class TestErrorRecovery(unittest.TestCase):
         context = ErrorContext(operation="test_operation")
         test_error = ValueError("Test error")
 
-        result = self.recovery_manager.handle_error(test_error, context)
+        _result = self.recovery_manager.handle_error(test_error, context)  # noqa: F841
 
         # Check that error was recorded
         self.assertEqual(len(self.recovery_manager.error_history), 1)

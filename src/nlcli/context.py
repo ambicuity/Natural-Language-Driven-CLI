@@ -4,14 +4,13 @@ Handles ephemeral session state and durable preferences.
 """
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from rich.console import Console
 from rich.table import Table
-from rich.text import Text
 
 
 @dataclass

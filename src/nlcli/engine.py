@@ -4,7 +4,7 @@ Enhanced with Phase 4 Production Ready features.
 """
 
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from nlcli.context import Intent, SessionContext
 from nlcli.llm import LLMConfig, LocalLLM, default_llm
@@ -43,7 +43,7 @@ def enhanced_plan_and_generate(
         # Import Phase 4 modules (lazy loading for backward compatibility)
         from nlcli.enterprise import get_enterprise_manager
         from nlcli.error_recovery import ErrorContext, get_error_recovery_manager
-        from nlcli.performance import get_performance_profiler, profile_operation
+        from nlcli.performance import get_performance_profiler
         from nlcli.security import get_security_auditor
         from nlcli.telemetry import get_telemetry_manager
 
@@ -54,7 +54,7 @@ def enhanced_plan_and_generate(
         # Profile the entire planning operation
         with profiler.profile_operation(
             "plan_and_generate", {"input_length": len(nl_input)}
-        ) as perf_context:
+        ) as _perf_context:  # noqa: F841
 
             # Record telemetry event
             telemetry.events.log_event(
@@ -216,7 +216,10 @@ def plan_and_generate(
     # Use LLM for tool selection validation if available
     if llm.is_available() and len(matching_tools) > 1:
         tool_names = [tool.name for tool, _ in matching_tools[:5]]  # Top 5 candidates
-        llm_suggestion = llm.suggest_tool_selection(processed_input, tool_names)
+        # LLM suggestion for future enhancement
+        _llm_suggestion = llm.suggest_tool_selection(  # noqa: F841
+            processed_input, tool_names
+        )
         # For now, we still use the heuristic selection, but this could be enhanced
 
     # Extract arguments for the chosen tool
@@ -460,7 +463,7 @@ def preprocess_input(text: str) -> str:
         processed = re.sub(pattern, replacement, processed, flags=re.IGNORECASE)
 
     # Normalize file size units
-    size_normalizations = {
+    _size_normalizations = {  # noqa: F841
         r"(\d+)\s*(gigabyte|gigabytes|giga|gb)",
         r"(\d+)\s*(megabyte|megabytes|mega|mb)",
         r"(\d+)\s*(kilobyte|kilobytes|kilo|kb)",

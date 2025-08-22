@@ -100,43 +100,10 @@ class LocalLLM:
 
         # Placeholder for actual LLM processing
         # This would send the input through the model for enhanced understanding
-        prompt = self._build_intent_prompt(user_input, context)
+        _prompt = self._build_intent_prompt(user_input, context)  # noqa: F841
 
         # For now, just return the original input
         return LLMResponse(text=user_input, confidence=0.5, success=True)
-
-    def suggest_tool_selection(
-        self, user_input: str, available_tools: List[str]
-    ) -> LLMResponse:
-        """
-        Use LLM to suggest the best tool for the user input.
-
-        Args:
-            user_input: Natural language input from user
-            available_tools: List of available tool names
-
-        Returns:
-            Tool suggestion with confidence
-        """
-        if not self.is_available():
-            # Try cloud LLM fallback
-            return self._try_cloud_fallback(
-                user_input, {"tools": available_tools}, "tool_selection"
-            )
-
-        # Placeholder for actual LLM processing
-        prompt = self._build_tool_selection_prompt(user_input, available_tools)
-
-        # Simple heuristic fallback
-        for tool in available_tools:
-            if any(keyword in user_input.lower() for keyword in tool.split("_")):
-                return LLMResponse(text=tool, confidence=0.6, success=True)
-
-        return LLMResponse(
-            text=available_tools[0] if available_tools else "",
-            confidence=0.1,
-            success=True,
-        )
 
     def _try_cloud_fallback(
         self, user_input: str, context: Dict[str, Any], task_type: str
@@ -246,7 +213,7 @@ Return only the tool name that best matches the request."""
         if not self.is_available():
             return LLMResponse(text="", success=False, error="LLM not available")
 
-        prompt = self._build_tool_selection_prompt(user_input, available_tools)
+        _prompt = self._build_tool_selection_prompt(user_input, available_tools)  # noqa: F841
 
         # Placeholder for actual LLM processing
         return LLMResponse(text="", confidence=0.5, success=True)

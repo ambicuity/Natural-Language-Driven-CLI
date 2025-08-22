@@ -4,7 +4,7 @@ Tests process management, network operations, package management, and git tools.
 """
 
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch  # noqa: F401
 
 from nlcli.registry import ToolRegistry
 from nlcli.tools.git_tools import get_git_tools

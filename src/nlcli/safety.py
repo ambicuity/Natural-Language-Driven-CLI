@@ -5,7 +5,7 @@ Enhanced with Phase 4 Production Ready features.
 
 import re
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Set, Tuple
 
 from nlcli.context import Intent, SessionContext
 
@@ -381,7 +381,7 @@ def enhanced_safety_check(
 
         return is_safe, message, violations
 
-    except ImportError as e:
+    except ImportError:  # noqa: F841
         # Fallback to basic safety if Phase 4 modules not available
         is_safe = guard(intent, context)
         message = (

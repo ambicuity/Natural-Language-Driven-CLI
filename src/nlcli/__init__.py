@@ -36,14 +36,27 @@ __all__ = [
 
 # Phase 3 Advanced Features
 try:
-    from nlcli.advanced_context import (
+    from nlcli.advanced_context import (  # noqa: F401
         AdvancedContextManager,
         get_advanced_context_manager,
     )
-    from nlcli.batch import BatchModeManager, BatchScriptParser, get_batch_manager
-    from nlcli.cloud_llm import CloudLLMService, get_cloud_llm_service
-    from nlcli.language import MultiLanguageProcessor, get_language_processor
-    from nlcli.plugins import PluginManager, get_plugin_manager
+    from nlcli.batch import (  # noqa: F401
+        BatchModeManager,
+        BatchScriptParser,
+        get_batch_manager,
+    )
+    from nlcli.cloud_llm import (  # noqa: F401
+        CloudLLMService,
+        get_cloud_llm_service,
+    )
+    from nlcli.language import (  # noqa: F401
+        MultiLanguageProcessor,
+        get_language_processor,
+    )
+    from nlcli.plugins import (  # noqa: F401
+        PluginManager,
+        get_plugin_manager,
+    )
 
     __all__.extend(
         [

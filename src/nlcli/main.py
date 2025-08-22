@@ -715,7 +715,7 @@ def main(
         try:
             from nlcli.language import get_language_processor
 
-            lang_processor = get_language_processor()
+            _lang_processor = get_language_processor()  # noqa: F841
             console.print(f"✅ Multi-language support enabled", style="green")
         except ImportError:
             console.print("⚠️  Multi-language support not available", style="yellow")

@@ -265,7 +265,7 @@ class CloudLLMProvider:
                         error_msg = error_data["error"].get("message", error_msg)
                     else:
                         error_msg = str(error_data["error"])
-            except:
+            except Exception:
                 pass
 
             return CloudLLMResponse(

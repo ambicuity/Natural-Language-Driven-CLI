@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 from nlcli.context import Intent, SessionContext
 from nlcli.engine import explain, plan_and_generate
 from nlcli.executor import execute
-from nlcli.registry import ToolArg, ToolRegistry, ToolSchema
+from nlcli.registry import ToolArg, ToolRegistry, ToolSchema  # noqa: F401
 from nlcli.safety import guard
 
 

@@ -3,7 +3,6 @@ Advanced Error Recovery Module.
 Implements robust error handling, retry mechanisms, and graceful degradation.
 """
 
-import asyncio
 import logging
 import random
 import time
@@ -11,7 +10,7 @@ import traceback
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 class ErrorSeverity(Enum):
@@ -205,7 +204,7 @@ class ErrorClassifier:
     ) -> Tuple[ErrorCategory, ErrorSeverity]:
         """Classify an error and determine its severity."""
         error_message = str(error).lower()
-        error_type = type(error).__name__
+        _error_type = type(error).__name__  # noqa: F841
 
         # Check error patterns
         for category, patterns in self.error_patterns.items():

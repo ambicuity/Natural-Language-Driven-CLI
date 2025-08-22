@@ -3,13 +3,12 @@ Scripting and Batch Mode
 Support for executing commands in batch mode and script files.
 """
 
-import json
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -272,7 +271,8 @@ class BatchExecutor:
                 if not result.success and command.retry_count > 0:
                     for retry in range(command.retry_count):
                         self.logger.info(
-                            f"Retrying command (attempt {retry + 1}/{command.retry_count})"
+                            f"Retrying command (attempt {retry + 1}/"
+                            f"{command.retry_count})"
                         )
                         time.sleep(1)  # Wait before retry
 
@@ -485,7 +485,8 @@ timeout: 60
                 for dep in cmd.depends_on:
                     if dep not in line_numbers:
                         validation_result["warnings"].append(
-                            f"Command at line {cmd.line_number} depends on non-existent line {dep}"
+                            f"Command at line {cmd.line_number} depends on "
+                            f"non-existent line {dep}"
                         )
 
             if validation_result["errors"]:

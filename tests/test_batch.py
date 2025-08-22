@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from nlcli.batch import (
+from nlcli.batch import (  # noqa: F401
     BatchCommand,
     BatchExecutor,
     BatchModeManager,

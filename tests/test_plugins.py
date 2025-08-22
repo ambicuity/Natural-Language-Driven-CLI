@@ -8,14 +8,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nlcli.plugins import (
+from nlcli.plugins import (  # noqa: F401
     LoadedPlugin,
     PluginManager,
     PluginMetadata,
     create_example_plugin,
     get_plugin_manager,
 )
-from nlcli.registry import ToolArg, ToolSchema
+from nlcli.registry import ToolArg, ToolSchema  # noqa: F401
 
 
 class TestPluginSystem(unittest.TestCase):
@@ -167,7 +167,7 @@ def get_plugin_info():
         # Load a plugin
         plugin_file = self.temp_dir / "test_plugin.py"
         plugin_file.write_text(create_example_plugin())
-        loaded_plugin = self.plugin_manager.load_plugin(plugin_file)
+        _loaded_plugin = self.plugin_manager.load_plugin(plugin_file)  # noqa: F841
 
         # Now should have plugin tools
         tools = self.plugin_manager.get_all_tools()

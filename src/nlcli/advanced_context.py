@@ -1,16 +1,13 @@
 """
 Advanced Context Understanding
-Enhanced context management with semantic understanding and conversation memory.
+Enhanced context management with semantic understanding.
 """
 
-import json
 import logging
-import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -65,10 +62,12 @@ class EntityExtractor:
         # Patterns for different entity types
         self.entity_patterns = {
             "file": [
-                r"\b([^\s]+\.(?:txt|pdf|doc|docx|py|js|html|css|json|xml|log|md))\b",
-                r"(?:file|document)s?\s+(?:named|called)?\s*([^\s]+\.[a-zA-Z]{1,4})",
+                r"\b([^\s]+\.(?:txt|pdf|doc|docx|py|js|html|css|json|xml|"
+                r"log|md))\b",
+                r"(?:file|document)s?\s+(?:named|called)?\s*([^\s]+\."
+                r"[a-zA-Z]{1,4})",
                 r"([^\s]+\.[a-zA-Z]{1,4})\s+(?:file|document)s?",
-                r"(?:all\s+)?(\.[a-zA-Z]{2,4})\s+files?",  # Pattern for ".txt files"
+                r"(?:all\s+)?(\.[a-zA-Z]{2,4})\s+files?",  # ".txt files"
             ],
             "directory": [
                 r"(?:directory|folder|dir)\s+(?:named|called)?\s*([^\s]+)",
@@ -86,12 +85,15 @@ class EntityExtractor:
             ],
             "size": [
                 r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
-                r"(?:larger|bigger|greater)\s+than\s+(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
-                r"(?:smaller|less)\s+than\s+(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
+                r"(?:larger|bigger|greater)\s+than\s+"
+                r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
+                r"(?:smaller|less)\s+than\s+" r"(\d+(?:\.\d+)?\s*(?:b|kb|mb|gb|tb))",
             ],
             "time": [
-                r"(?:in\s+the\s+)?(?:last|past)\s+(\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?)",
-                r"(?:modified|changed|created)\s+(?:in\s+the\s+)?(?:last\s+)?(\w+(?:\s+\w+)?)",
+                r"(?:in\s+the\s+)?(?:last|past)\s+(\d+)\s+"
+                r"(seconds?|minutes?|hours?|days?|weeks?|months?)",
+                r"(?:modified|changed|created)\s+(?:in\s+the\s+)?"
+                r"(?:last\s+)?(\w+(?:\s+\w+)?)",
                 r"(today|yesterday|this\s+week|last\s+week|this\s+month)",
             ],
         }
@@ -114,7 +116,7 @@ class EntityExtractor:
                         entity = ContextEntity(
                             name=match.strip(),
                             entity_type=entity_type,
-                            confidence=0.7,  # Pattern-based extraction has moderate confidence
+                            confidence=0.7,  # Pattern-based extraction
                         )
                         entities.append(entity)
 
