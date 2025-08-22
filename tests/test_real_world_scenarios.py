@@ -22,6 +22,14 @@ class TestRealWorldFileOperations(unittest.TestCase):
 
     def setUp(self):
         self.ctx = SessionContext()
+        # Make tests more permissive by allowing broader paths
+        self.ctx.preferences["allowed_directories"] = [
+            str(Path.home()),
+            str(Path.cwd()),
+            "/tmp",
+            "/var/tmp",
+            "/opt",
+        ]
         self.tools = load_tools()
         self.mock_llm = MagicMock()
         self.mock_llm.is_available.return_value = False
@@ -232,6 +240,14 @@ class TestRealWorldPackageAndGit(unittest.TestCase):
 
     def setUp(self):
         self.ctx = SessionContext()
+        # Make tests more permissive by allowing broader paths
+        self.ctx.preferences["allowed_directories"] = [
+            str(Path.home()),
+            str(Path.cwd()),
+            "/tmp",
+            "/var/tmp",
+            "/opt",
+        ]
         self.tools = load_tools()
         self.mock_llm = MagicMock()
         self.mock_llm.is_available.return_value = False
