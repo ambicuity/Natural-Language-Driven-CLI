@@ -27,7 +27,7 @@ class TestRealWorldFileOperations(unittest.TestCase):
             str(Path.home()),
             str(Path.cwd()),
             "/tmp",
-            "/var/tmp", 
+            "/var/tmp",
             "/opt",
         ]
         self.tools = load_tools()

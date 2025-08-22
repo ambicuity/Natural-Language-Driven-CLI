@@ -372,13 +372,11 @@ class TestTelemetry(unittest.TestCase):
         """Test event logging."""
         with tempfile.NamedTemporaryFile(delete=False) as f:
             temp_path = f.name
-        
+
         # Create event logger after the file is closed
         event_logger = EventLogger(Path(temp_path))
 
-        event_logger.log_command_execution(
-            command="ls -la", success=True, duration=0.5
-        )
+        event_logger.log_command_execution(command="ls -la", success=True, duration=0.5)
 
         # Check that event was recorded
         self.assertEqual(len(event_logger.events), 1)
