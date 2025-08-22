@@ -125,8 +125,8 @@ class TestLanguageSupport(unittest.TestCase):
         text = "mostrar archivos"  # Spanish
         result = limited_processor.process_input(text)
 
-        # Should still be supported because Spanish patterns might not be detected strongly enough
-        # or it might default to English
+        # Should still be supported because Spanish patterns might not be detected
+        # strongly enough or it might default to English
         self.assertIsInstance(result["supported"], bool)
 
     def test_processor_with_user_preference(self):

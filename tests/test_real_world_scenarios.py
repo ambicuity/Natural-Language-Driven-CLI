@@ -299,7 +299,8 @@ class TestRealWorldSafetyAndSecurity(unittest.TestCase):
         self.mock_llm.is_available.return_value = False
 
     def test_delete_all_tmp_files_requires_confirmation(self):
-        """Test: 'delete all tmp files in /tmp' → should trigger confirmation or be interpreted safely"""
+        """Test: 'delete all tmp files in /tmp' → should trigger confirmation or
+        be interpreted safely"""
         nl_input = "delete all tmp files in /tmp"
         intent = plan_and_generate(nl_input, self.ctx, self.tools, self.mock_llm)
 
@@ -477,7 +478,8 @@ class TestRealWorldContextAwareness(unittest.TestCase):
         self.mock_llm.is_available.return_value = False
 
     def test_context_chain_find_then_filter_then_delete(self):
-        """Test context awareness: 'find large files' → 'only show videos' → 'delete those files'"""
+        """Test context awareness: 'find large files' → 'only show videos' →
+        'delete those files'"""
 
         # Step 1: find large files in Downloads
         nl_input_1 = "find large files in Downloads"
@@ -501,7 +503,8 @@ class TestRealWorldContextAwareness(unittest.TestCase):
         nl_input_2 = "now only show videos"
         intent_2 = plan_and_generate(nl_input_2, self.ctx, self.tools, self.mock_llm)
 
-        # Should understand context and refine search - but without LLM may not work perfectly
+        # Should understand context and refine search - but without LLM may not
+        # work perfectly
         if intent_2:
             # Accept any reasonable tool for the context refinement
             self.assertTrue(len(intent_2.tool_name) > 0)

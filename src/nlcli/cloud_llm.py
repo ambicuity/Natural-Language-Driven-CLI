@@ -201,7 +201,10 @@ class CloudLLMProvider:
                 response_time=time.time() - start_time,
             )
 
-        url = f"{self.config.google_base_url}/models/{self.config.google_model}:generateContent?key={self.config.google_api_key}"
+        url = (
+            f"{self.config.google_base_url}/models/{self.config.google_model}:"
+            f"generateContent?key={self.config.google_api_key}"
+        )
         headers = {"Content-Type": "application/json"}
 
         # Convert messages to Gemini format
@@ -377,13 +380,15 @@ class CloudLLMService:
 
                 if response.success:
                     self.logger.info(
-                        f"Cloud LLM request successful with {provider} (attempt {attempt + 1})"
+                        f"Cloud LLM request successful with {provider} "
+                        f"(attempt {attempt + 1})"
                     )
                     return response
 
                 last_response = response
                 self.logger.warning(
-                    f"Cloud LLM request failed with {provider} (attempt {attempt + 1}): {response.error}"
+                    f"Cloud LLM request failed with {provider} "
+                    f"(attempt {attempt + 1}): {response.error}"
                 )
 
                 # Wait before retry

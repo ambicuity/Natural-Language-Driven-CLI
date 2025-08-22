@@ -378,8 +378,10 @@ class ToolRegistry:
             # First check for file extension patterns
             if arg_name == "name":
                 extension_patterns = [
-                    r"find\s+([*.]?\w+)\s+files",  # "find .log files", "find *.log files"
-                    r"([*.]?\w+)\s+files?\s+modified",  # ".log files modified"
+                    # "find .log files", "find *.log files"
+                    r"find\s+([*.]?\w+)\s+files",
+                    # ".log files modified"
+                    r"([*.]?\w+)\s+files?\s+modified",
                     r"([*.]?\w+)\s+files?\s+(created|modified|updated)",
                     r"(\.?\w+)\s+files",  # ".log files"
                 ]
@@ -578,10 +580,14 @@ class ToolRegistry:
                 return True
 
             # Check for explicit negative indicators
-            if any(indicator in nl_input.lower() for indicator in negative_indicators):
+            negative_found = any(
+                indicator in nl_input.lower() for indicator in negative_indicators
+            )
+            if negative_found:
                 return False
 
-            # If neither positive nor negative indicators found, return None to use default
+            # If neither positive nor negative indicators found, return None to use
+            # default
             return None
 
         # Package name extraction
@@ -851,8 +857,12 @@ class ToolRegistry:
             if sort == "cpu":
                 return f"ps aux --sort=-pcpu | head -{limit}"
             else:
-                # Fall back to original complex format for non-CPU sorting to maintain compatibility
-                return f"ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}"
+                # Fall back to original complex format for non-CPU sorting to
+                # maintain compatibility
+                return (
+                    f"ps aux | head -1 && ps aux | grep -v 'grep' | "
+                    f"sort -k{sort_col} -r | head -{limit}"
+                )
 
     def _generate_lsof_command(self, args: Dict[str, Any]) -> str:
         """Generate lsof command for port lookup."""
@@ -888,7 +898,10 @@ class ToolRegistry:
     def _generate_system_resources_command(self, args: Dict[str, Any]) -> str:
         """Generate system resource monitoring command."""
         if args.get("detailed"):
-            return "top -bn1 | head -20 && echo '--- Memory ---' && free -h && echo '--- Disk ---' && df -h"
+            return (
+                "top -bn1 | head -20 && echo '--- Memory ---' && free -h && "
+                "echo '--- Disk ---' && df -h"
+            )
         else:
             return "top -bn1 | head -5 && free -h && df -h /"
 

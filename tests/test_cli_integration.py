@@ -10,6 +10,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+# Base directory for tests
+BASE_DIR = "/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI"
+
 
 class TestCLIIntegration(unittest.TestCase):
     """Integration tests for the CLI interface."""
@@ -23,7 +26,7 @@ class TestCLIIntegration(unittest.TestCase):
 
         result = subprocess.run(
             args,
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
             timeout=30,
@@ -157,7 +160,7 @@ class TestCLIIntegration(unittest.TestCase):
             # Test batch script execution
             result = subprocess.run(
                 ["python", "-m", "nlcli.main", "--dry-run", "--batch", script_path],
-                cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+                cwd=BASE_DIR,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -178,7 +181,7 @@ class TestCLIIntegration(unittest.TestCase):
         # Test help
         result = subprocess.run(
             ["python", "-m", "nlcli.main", "--help"],
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
         )
@@ -188,7 +191,7 @@ class TestCLIIntegration(unittest.TestCase):
         # Test version
         result = subprocess.run(
             ["python", "-m", "nlcli.main", "--version"],
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
         )
@@ -222,13 +225,14 @@ class TestCLIIntegration(unittest.TestCase):
             ["python", "-m", "nlcli.main", "--dry-run"]
             + ["--batch-commands"]
             + commands,
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
             timeout=30,
         )
 
-        # Should succeed or have reasonable error (including exit code 2 for some errors)
+        # Should succeed or have reasonable error (including exit code 2 for some
+        # errors)
         self.assertIn(result.returncode, [0, 1, 2])
         # Should not crash
         self.assertNotIn("Traceback", result.stderr)
@@ -255,7 +259,7 @@ class TestCLIErrorHandling(unittest.TestCase):
         """Test handling of invalid batch file."""
         result = subprocess.run(
             ["python", "-m", "nlcli.main", "--batch", "/nonexistent/file.nlcli"],
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
         )
@@ -269,7 +273,7 @@ class TestCLIErrorHandling(unittest.TestCase):
         """Test handling of empty commands."""
         result = subprocess.run(
             ["python", "-m", "nlcli.main", "--dry-run", "--batch-commands", ""],
-            cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+            cwd=BASE_DIR,
             capture_output=True,
             text=True,
         )
@@ -296,7 +300,7 @@ class TestCLIErrorHandling(unittest.TestCase):
                         "--batch-commands",
                         cmd,
                     ],
-                    cwd="/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI",
+                    cwd=BASE_DIR,
                     capture_output=True,
                     text=True,
                     timeout=10,

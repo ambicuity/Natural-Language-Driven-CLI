@@ -247,12 +247,24 @@ class SecurityAuditor:
     def _get_recommendation(self, vuln_type: VulnerabilityType) -> str:
         """Get security recommendation for vulnerability type."""
         recommendations = {
-            VulnerabilityType.COMMAND_INJECTION: "Use parameterized commands and avoid shell metacharacters",
-            VulnerabilityType.PATH_TRAVERSAL: "Use absolute paths within allowed directories",
-            VulnerabilityType.PRIVILEGE_ESCALATION: "Avoid privilege escalation; use appropriate user permissions",
-            VulnerabilityType.DATA_EXFILTRATION: "Review data transfer operations for necessity",
-            VulnerabilityType.SYSTEM_MODIFICATION: "Use read-only operations when possible",
-            VulnerabilityType.NETWORK_ACCESS: "Ensure network operations are authorized and secure",
+            VulnerabilityType.COMMAND_INJECTION: (
+                "Use parameterized commands and avoid shell metacharacters"
+            ),
+            VulnerabilityType.PATH_TRAVERSAL: (
+                "Use absolute paths within allowed directories"
+            ),
+            VulnerabilityType.PRIVILEGE_ESCALATION: (
+                "Avoid privilege escalation; use appropriate user permissions"
+            ),
+            VulnerabilityType.DATA_EXFILTRATION: (
+                "Review data transfer operations for necessity"
+            ),
+            VulnerabilityType.SYSTEM_MODIFICATION: (
+                "Use read-only operations when possible"
+            ),
+            VulnerabilityType.NETWORK_ACCESS: (
+                "Ensure network operations are authorized and secure"
+            ),
         }
         return recommendations.get(
             vuln_type, "Review command for security implications"

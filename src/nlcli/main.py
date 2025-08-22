@@ -200,11 +200,13 @@ def repl() -> None:
                         style="blue",
                     )
                     console.print(
-                        f"📝 Enabled languages: {', '.join(lang_processor.config.enabled_languages)}",
+                        f"📝 Enabled languages: "
+                        f"{', '.join(lang_processor.config.enabled_languages)}",
                         style="blue",
                     )
                     console.print(
-                        f"🔄 Auto-detect: {ctx.preferences.get('auto_detect_language', True)}",
+                        f"🔄 Auto-detect: "
+                        f"{ctx.preferences.get('auto_detect_language', True)}",
                         style="blue",
                     )
                 except ImportError:
@@ -295,7 +297,8 @@ def repl() -> None:
                         console.print("\n🔍 Recent Violations:")
                         for violation in report["recent_violations"][-5:]:
                             console.print(
-                                f"  • {violation['severity']}: {violation['description']}"
+                                f"  • {violation['severity']}: "
+                                f"{violation['description']}"
                             )
 
                 except ImportError:
@@ -356,10 +359,13 @@ def repl() -> None:
                     metrics = report["metrics"]
                     console.print("\n📈 Metrics:")
                     console.print(
-                        f"  Commands executed: {metrics['counters'].get('commands_executed', 0)}"
+                        f"  Commands executed: "
+                        f"{metrics['counters'].get('commands_executed', 0)}"
                     )
                     console.print(
-                        f"  Success rate: {metrics['counters'].get('commands_successful', 0)}/{metrics['counters'].get('commands_executed', 1)}"
+                        f"  Success rate: "
+                        f"{metrics['counters'].get('commands_successful', 0)}/"
+                        f"{metrics['counters'].get('commands_executed', 1)}"
                     )
 
                     # Events summary
@@ -473,7 +479,8 @@ def repl() -> None:
                         console.print("📊 Resource Monitoring:", style="bold blue")
                         console.print(f"CPU: {current.cpu_percent:.1f}%")
                         console.print(
-                            f"Memory: {current.memory_percent:.1f}% ({current.memory_used_mb:.1f}MB used)"
+                            f"Memory: {current.memory_percent:.1f}% "
+                            f"({current.memory_used_mb:.1f}MB used)"
                         )
                         console.print(f"Disk: {current.disk_usage_percent:.1f}%")
                         console.print(f"Open Files: {current.open_files}")
@@ -484,7 +491,8 @@ def repl() -> None:
                                 history
                             )
                             console.print(
-                                f"\n5-min averages: CPU {avg_cpu:.1f}%, Memory {avg_memory:.1f}%"
+                                f"\n5-min averages: CPU {avg_cpu:.1f}%, "
+                                f"Memory {avg_memory:.1f}%"
                             )
                     else:
                         console.print("❌ No monitoring data available", style="red")
@@ -508,7 +516,9 @@ def repl() -> None:
                         "enhanced_features_enabled"
                     ) and ctx.preferences.get("debug", False):
                         console.print(
-                            f"[dim]🔧 Enhanced features: {len(metadata.get('security_violations', []))} security violations detected[/dim]"
+                            f"[dim]🔧 Enhanced features: "
+                            f"{len(metadata.get('security_violations', []))} "
+                            f"security violations detected[/dim]"
                         )
 
                 except ImportError:
@@ -547,9 +557,10 @@ def repl() -> None:
                         if violations:
                             console.print("🔍 Issues found:")
                             for violation in violations[:3]:  # Show top 3
-                                console.print(
-                                    f"  • {violation.get('description', 'Security violation')}"
+                                desc = violation.get(
+                                    "description", "Security violation"
                                 )
+                                console.print(f"  • {desc}")
                         continue
 
                     # Show warnings for non-critical violations
@@ -642,9 +653,7 @@ def repl() -> None:
                     recovery_result = recovery_manager.handle_error(e, error_context)
 
                     if recovery_result:
-                        console.print(
-                            "🔄 Error recovered automatically", style="green"
-                        )
+                        console.print("🔄 Error recovered automatically", style="green")
                     else:
                         console.print(f"❌ Error: {e}", style="red")
 

@@ -286,7 +286,8 @@ class ErrorRecoveryManager:
 
         # Log error
         self.logger.error(
-            f"Error in {context.operation}: {error} (Category: {category.value}, Severity: {severity.value})"
+            f"Error in {context.operation}: {error} "
+            f"(Category: {category.value}, Severity: {severity.value})"
         )
 
         if not allow_recovery:
@@ -440,13 +441,14 @@ def with_retry(
                     if attempt < config.max_attempts:
                         delay = config.get_delay(attempt)
                         logging.getLogger(func.__module__).warning(
-                            f"Attempt {attempt}/{config.max_attempts} failed for {func.__name__}: {e}. "
-                            f"Retrying in {delay:.2f}s..."
+                            f"Attempt {attempt}/{config.max_attempts} failed for "
+                            f"{func.__name__}: {e}. Retrying in {delay:.2f}s..."
                         )
                         time.sleep(delay)
                     else:
                         logging.getLogger(func.__module__).error(
-                            f"All {config.max_attempts} attempts failed for {func.__name__}: {e}"
+                            f"All {config.max_attempts} attempts failed for "
+                            f"{func.__name__}: {e}"
                         )
 
             # If we get here, all attempts failed
@@ -472,7 +474,8 @@ def graceful_fallback(fallback_value: Any = None, log_error: bool = True):
             except Exception as e:
                 if log_error:
                     logging.getLogger(func.__module__).warning(
-                        f"Function {func.__name__} failed with {e}, using fallback value"
+                        f"Function {func.__name__} failed with {e}, "
+                        f"using fallback value"
                     )
                 return fallback_value
 
