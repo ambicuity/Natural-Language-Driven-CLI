@@ -129,10 +129,18 @@ class LocalLLM:
                 )
             elif task_type == "tool_selection":
                 system_prompt = self._build_tool_selection_system_prompt()
-                tools_list = "\n".join(f"- {tool}" for tool in context.get("tools", []))
-                prompt = f"Given these available tools:\n{tools_list}\n\nWhich tool is best for: '{user_input}'"
+                tools_list = "\n".join(
+                    f"- {tool}" for tool in context.get("tools", [])
+                )
+                prompt = (
+                    f"Given these available tools:\n{tools_list}\n\n"
+                    f"Which tool is best for: '{user_input}'"
+                )
             elif task_type == "explanation":
-                system_prompt = "You are a helpful assistant that explains command-line operations clearly and concisely."
+                system_prompt = (
+                    "You are a helpful assistant that explains "
+                    "command-line operations clearly and concisely."
+                )
                 prompt = f"Explain what this command does: {user_input}"
             else:
                 system_prompt = (
@@ -169,33 +177,39 @@ class LocalLLM:
         except Exception as e:
             self.logger.error(f"Cloud LLM fallback error: {e}")
             return LLMResponse(
-                text=user_input, success=False, error=f"Cloud LLM fallback error: {e}"
+                text=user_input,
+                success=False,
+                error=f"Cloud LLM fallback error: {e}"
             )
 
     def _build_intent_system_prompt(self) -> str:
         """Build system prompt for intent understanding."""
-        return """You are an expert at understanding natural language commands for system administration and file operations.
-Your job is to analyze user requests and extract the key intent, parameters, and context.
-
-Focus on identifying:
-- The main action (show, list, find, delete, copy, etc.)
-- Target objects (files, processes, directories, etc.)
-- Filters and conditions (size, date, permissions, etc.)
-- Location context (directories, paths)
-
-Return clear, structured analysis of the user's intent."""
+        return (
+            "You are an expert at understanding natural language commands "
+            "for system administration and file operations.\n"
+            "Your job is to analyze user requests and extract the key intent, "
+            "parameters, and context.\n\n"
+            "Focus on identifying:\n"
+            "- The main action (show, list, find, delete, copy, etc.)\n"
+            "- Target objects (files, processes, directories, etc.)\n"
+            "- Filters and conditions (size, date, permissions, etc.)\n"
+            "- Location context (directories, paths)\n\n"
+            "Return clear, structured analysis of the user's intent."
+        )
 
     def _build_tool_selection_system_prompt(self) -> str:
         """Build system prompt for tool selection."""
-        return """You are an expert at selecting the best command-line tool for user requests.
-Given a list of available tools and a user request, select the most appropriate tool.
-
-Consider:
-- The type of operation requested
-- The objects being operated on
-- The best tool for the specific use case
-
-Return only the tool name that best matches the request."""
+        return (
+            "You are an expert at selecting the best command-line tool "
+            "for user requests.\n"
+            "Given a list of available tools and a user request, "
+            "select the most appropriate tool.\n\n"
+            "Consider:\n"
+            "- The type of operation requested\n"
+            "- The objects being operated on\n"
+            "- The best tool for the specific use case\n\n"
+            "Return only the tool name that best matches the request."
+        )
 
     def suggest_tool_selection(
         self, user_input: str, available_tools: List[str]
@@ -213,7 +227,10 @@ Return only the tool name that best matches the request."""
         if not self.is_available():
             return LLMResponse(text="", success=False, error="LLM not available")
 
-        _prompt = self._build_tool_selection_prompt(user_input, available_tools)  # noqa: F841
+        # Build prompt but don't use it yet (placeholder for future implementation)
+        # _prompt = self._build_tool_selection_prompt(
+        #     user_input, available_tools
+        # )
 
         # Placeholder for actual LLM processing
         return LLMResponse(text="", confidence=0.5, success=True)
@@ -234,14 +251,19 @@ Return only the tool name that best matches the request."""
             explanation = f"Will execute: {command}"
         else:
             # Try cloud fallback
-            llm_response = self._try_cloud_fallback(command, context, "explanation")
+            llm_response = self._try_cloud_fallback(
+                command, context, "explanation"
+            )
             if llm_response.success:
                 return llm_response.text
             explanation = f"Will execute: {command}"
 
         # Add context-aware enhancements
         if "rm" in command and "-rf" in command:
-            explanation += " ⚠️  This is a destructive operation that will permanently delete files."
+            explanation += (
+                " ⚠️  This is a destructive operation that will "
+                "permanently delete files."
+            )
         elif "sudo" in command:
             explanation += " ⚠️  This command requires administrator privileges."
         elif command.startswith("find"):
