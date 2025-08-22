@@ -27,21 +27,23 @@ console = Console(force_terminal=True, legacy_windows=False)
 def safe_unicode_text(text: str, fallback: str = None) -> str:
     """
     Return Unicode text if supported, otherwise return ASCII fallback.
-    
+
     Args:
         text: The Unicode text to display
         fallback: ASCII fallback text. If None, Unicode symbols are replaced with ASCII.
-    
+
     Returns:
         Safe text for the current console
     """
     if fallback is None:
         # Default fallback: replace common Unicode symbols
-        fallback = text.replace("🔍", "[SEARCH]").replace("🚀", "[RUN]").replace("⚠️", "[WARN]")
-    
+        fallback = (
+            text.replace("🔍", "[SEARCH]").replace("🚀", "[RUN]").replace("⚠️", "[WARN]")
+        )
+
     try:
         # Test if console can encode the Unicode text
-        if console.file and hasattr(console.file, 'encoding'):
+        if console.file and hasattr(console.file, "encoding"):
             text.encode(console.file.encoding)
         return text
     except (UnicodeEncodeError, AttributeError):
@@ -773,7 +775,8 @@ def main(
                 )
             else:
                 console.print(
-                    f"[RUN] Executing {len(batch_commands)} batch commands", style="blue"
+                    f"[RUN] Executing {len(batch_commands)} batch commands",
+                    style="blue",
                 )
                 results = batch_manager.execute_commands(
                     list(batch_commands), dry_run=dry_run, stop_on_error=stop_on_error
