@@ -371,17 +371,24 @@ class TestTelemetry(unittest.TestCase):
     def test_event_logging(self):
         """Test event logging."""
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            event_logger = EventLogger(Path(f.name))
+            temp_path = f.name
+        
+        # Create event logger after the file is closed
+        event_logger = EventLogger(Path(temp_path))
 
-            event_logger.log_command_execution(
-                command="ls -la", success=True, duration=0.5
-            )
+        event_logger.log_command_execution(
+            command="ls -la", success=True, duration=0.5
+        )
 
-            # Check that event was recorded
-            self.assertEqual(len(event_logger.events), 1)
+        # Check that event was recorded
+        self.assertEqual(len(event_logger.events), 1)
 
         # Cleanup
-        os.unlink(f.name)
+        try:
+            os.unlink(temp_path)
+        except (OSError, PermissionError):
+            # On Windows, the file might still be in use
+            pass
 
     def test_session_management(self):
         """Test session management."""

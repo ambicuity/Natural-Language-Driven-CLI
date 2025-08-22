@@ -203,7 +203,10 @@ def get_plugin_info():
             manager = PluginManager()
             # Should include the custom path from environment
             path_strings = [str(p) for p in manager.plugin_paths]
-            self.assertIn("/custom/path", path_strings)
+            # Normalize paths for cross-platform testing
+            normalized_paths = [str(Path(p)) for p in path_strings]
+            custom_path = str(Path("/custom/path"))
+            self.assertIn(custom_path, normalized_paths)
 
 
 if __name__ == "__main__":

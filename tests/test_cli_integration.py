@@ -10,8 +10,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-# Base directory for tests
-BASE_DIR = "/home/runner/work/Natural-Language-Driven-CLI/Natural-Language-Driven-CLI"
+# Base directory for tests (use Path to handle cross-platform paths)
+BASE_DIR = Path(__file__).parent.parent
 
 
 class TestCLIIntegration(unittest.TestCase):

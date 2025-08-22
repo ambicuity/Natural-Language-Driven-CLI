@@ -34,7 +34,11 @@ class TestContextEntity(unittest.TestCase):
         """Test updating entity reference."""
         entity = ContextEntity(name="test.txt", entity_type="file")
         initial_time = entity.last_referenced
-
+        
+        # Add a small delay to ensure different timestamps
+        import time
+        time.sleep(0.001)
+        
         entity.update_reference()
 
         self.assertEqual(entity.reference_count, 1)
