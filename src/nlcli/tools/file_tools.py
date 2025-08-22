@@ -23,7 +23,10 @@ def get_file_tools() -> List[ToolSchema]:
                 "type": ToolArg("type", "string", default="f"),
             },
             generator={
-                "cmd": "find {path} -type {type} {size_clause} {time_clause} {name_clause} -print0 | xargs -0 ls -lh",
+                "cmd": (
+                    "find {path} -type {type} {size_clause} {time_clause} "
+                    "{name_clause} -print0 | xargs -0 ls -lh"
+                ),
                 "clauses": {
                     "size_clause": "-size +{min_size}",
                     "time_clause": "-mtime -{modified_within}",

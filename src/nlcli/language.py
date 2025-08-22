@@ -48,27 +48,32 @@ class LanguageDetector:
                 r"\b(all|large|small|recent|old)\b",
             ],
             "es": [
-                r"\b(mostrar|listar|buscar|encontrar|eliminar|borrar|copiar|mover|crear)\b",
+                r"\b(mostrar|listar|buscar|encontrar|eliminar|borrar|copiar|"
+                r"mover|crear)\b",
                 r"\b(archivos?|directorios?|procesos?|contenedores?)\b",
                 r"\b(todos?|grandes?|pequeños?|recientes?|viejos?)\b",
             ],
             "fr": [
-                r"\b(montrer|afficher|lister|chercher|trouver|supprimer|copier|déplacer|créer)\b",
+                r"\b(montrer|afficher|lister|chercher|trouver|supprimer|"
+                r"copier|déplacer|créer)\b",
                 r"\b(fichiers?|répertoires?|processus|conteneurs?)\b",
                 r"\b(tous?|toutes?|grands?|petits?|récents?|anciens?)\b",
             ],
             "de": [
-                r"\b(zeigen|anzeigen|auflisten|suchen|finden|löschen|kopieren|verschieben|erstellen)\b",
+                r"\b(zeigen|anzeigen|auflisten|suchen|finden|löschen|"
+                r"kopieren|verschieben|erstellen)\b",
                 r"\b(dateien?|verzeichnisse?|prozesse?|container?)\b",
                 r"\b(alle?|große?|kleine?|neue?|alte?)\b",
             ],
             "pt": [
-                r"\b(mostrar|exibir|listar|buscar|encontrar|deletar|excluir|copiar|mover|criar)\b",
+                r"\b(mostrar|exibir|listar|buscar|encontrar|deletar|"
+                r"excluir|copiar|mover|criar)\b",
                 r"\b(arquivos?|diretórios?|processos?|contêineres?)\b",
                 r"\b(todos?|grandes?|pequenos?|recentes?|antigos?)\b",
             ],
             "it": [
-                r"\b(mostrare|visualizzare|elencare|cercare|trovare|eliminare|copiare|spostare|creare)\b",
+                r"\b(mostrare|visualizzare|elencare|cercare|trovare|"
+                r"eliminare|copiare|spostare|creare)\b",
                 r"\b(files?|directory|processi|contenitori?)\b",
                 r"\b(tutti?|grandi?|piccoli?|recenti?|vecchi?)\b",
             ],

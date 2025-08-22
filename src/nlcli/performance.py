@@ -181,17 +181,20 @@ class PerformanceProfiler:
             # Log performance warnings
             if metrics.duration > self.slow_operation_threshold:
                 self.logger.warning(
-                    f"Slow operation detected: {metrics.operation} took {metrics.duration:.2f}s"
+                    f"Slow operation detected: {metrics.operation} took "
+                    f"{metrics.duration:.2f}s"
                 )
 
             if metrics.memory_mb > self.memory_warning_threshold:
                 self.logger.warning(
-                    f"High memory usage: {metrics.operation} used {metrics.memory_mb:.2f}MB"
+                    f"High memory usage: {metrics.operation} used "
+                    f"{metrics.memory_mb:.2f}MB"
                 )
 
             if metrics.cpu_percent > self.cpu_warning_threshold:
                 self.logger.warning(
-                    f"High CPU usage: {metrics.operation} used {metrics.cpu_percent:.1f}% CPU"
+                    f"High CPU usage: {metrics.operation} used "
+                    f"{metrics.cpu_percent:.1f}% CPU"
                 )
 
     def get_metrics_summary(

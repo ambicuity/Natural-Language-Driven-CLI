@@ -253,7 +253,9 @@ def get_tools():
             name="hello_world",
             summary="Say hello to the world",
             args={
-                "name": ToolArg("name", "string", default="World", description="Name to greet")
+                "name": ToolArg(
+                    "name", "string", default="World", description="Name to greet"
+                )
             },
             generator={
                 "cmd": "echo 'Hello, {name}!'"

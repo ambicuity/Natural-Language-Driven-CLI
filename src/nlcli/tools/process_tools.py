@@ -22,7 +22,10 @@ def get_process_tools() -> List[ToolSchema]:
                 "limit": ToolArg("limit", "integer", default=20),
             },
             generator={
-                "cmd": "ps aux | head -1 && ps aux | grep -v 'grep' | sort -k{sort_col} -r | head -{limit}",
+                "cmd": (
+                    "ps aux | head -1 && ps aux | grep -v 'grep' | "
+                    "sort -k{sort_col} -r | head -{limit}"
+                ),
                 "clauses": {},
             },
             danger_level="read_only",

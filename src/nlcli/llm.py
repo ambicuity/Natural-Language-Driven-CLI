@@ -129,9 +129,7 @@ class LocalLLM:
                 )
             elif task_type == "tool_selection":
                 system_prompt = self._build_tool_selection_system_prompt()
-                tools_list = "\n".join(
-                    f"- {tool}" for tool in context.get("tools", [])
-                )
+                tools_list = "\n".join(f"- {tool}" for tool in context.get("tools", []))
                 prompt = (
                     f"Given these available tools:\n{tools_list}\n\n"
                     f"Which tool is best for: '{user_input}'"
@@ -177,9 +175,7 @@ class LocalLLM:
         except Exception as e:
             self.logger.error(f"Cloud LLM fallback error: {e}")
             return LLMResponse(
-                text=user_input,
-                success=False,
-                error=f"Cloud LLM fallback error: {e}"
+                text=user_input, success=False, error=f"Cloud LLM fallback error: {e}"
             )
 
     def _build_intent_system_prompt(self) -> str:
@@ -251,9 +247,7 @@ class LocalLLM:
             explanation = f"Will execute: {command}"
         else:
             # Try cloud fallback
-            llm_response = self._try_cloud_fallback(
-                command, context, "explanation"
-            )
+            llm_response = self._try_cloud_fallback(command, context, "explanation")
             if llm_response.success:
                 return llm_response.text
             explanation = f"Will execute: {command}"

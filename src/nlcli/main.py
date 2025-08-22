@@ -550,8 +550,7 @@ def repl() -> None:
 
                     if not is_safe:
                         console.print(
-                            f"❌ Command blocked: {safety_message}",
-                            style="red"
+                            f"❌ Command blocked: {safety_message}", style="red"
                         )
 
                         # Show violation details if any
@@ -559,7 +558,7 @@ def repl() -> None:
                             console.print("🔍 Issues found:")
                             for violation in violations[:3]:  # Show top 3
                                 desc = violation.get(
-                                    'description', 'Security violation'
+                                    "description", "Security violation"
                                 )
                                 console.print(f"  • {desc}")
                         continue
