@@ -20,7 +20,32 @@ from nlcli.executor import execute
 from nlcli.registry import load_tools
 from nlcli.safety import guard
 
-console = Console()
+# Configure console with proper UTF-8 encoding for cross-platform compatibility
+console = Console(force_terminal=True, legacy_windows=False)
+
+
+def safe_unicode_text(text: str, fallback: str = None) -> str:
+    """
+    Return Unicode text if supported, otherwise return ASCII fallback.
+    
+    Args:
+        text: The Unicode text to display
+        fallback: ASCII fallback text. If None, Unicode symbols are replaced with ASCII.
+    
+    Returns:
+        Safe text for the current console
+    """
+    if fallback is None:
+        # Default fallback: replace common Unicode symbols
+        fallback = text.replace("🔍", "[SEARCH]").replace("🚀", "[RUN]").replace("⚠️", "[WARN]")
+    
+    try:
+        # Test if console can encode the Unicode text
+        if console.file and hasattr(console.file, 'encoding'):
+            text.encode(console.file.encoding)
+        return text
+    except (UnicodeEncodeError, AttributeError):
+        return fallback
 
 
 def print_welcome():
@@ -294,7 +319,7 @@ def repl() -> None:
                     console.print(table)
 
                     if report.get("recent_violations"):
-                        console.print("\n🔍 Recent Violations:")
+                        console.print("\n[SEARCH] Recent Violations:")
                         for violation in report["recent_violations"][-5:]:
                             console.print(
                                 f"  • {violation['severity']}: "
@@ -555,7 +580,7 @@ def repl() -> None:
 
                         # Show violation details if any
                         if violations:
-                            console.print("🔍 Issues found:")
+                            console.print("[SEARCH] Issues found:")
                             for violation in violations[:3]:  # Show top 3
                                 desc = violation.get(
                                     "description", "Security violation"
@@ -714,7 +739,7 @@ def main(
     """Natural Language Driven CLI - Turn natural language into safe system commands."""
     if dry_run:
         console.print(
-            "🔍 Dry-run mode enabled - commands will be shown but not executed",
+            "[SEARCH] Dry-run mode enabled - commands will be shown but not executed",
             style="yellow",
         )
 
@@ -748,7 +773,7 @@ def main(
                 )
             else:
                 console.print(
-                    f"🔄 Executing {len(batch_commands)} batch commands", style="blue"
+                    f"[RUN] Executing {len(batch_commands)} batch commands", style="blue"
                 )
                 results = batch_manager.execute_commands(
                     list(batch_commands), dry_run=dry_run, stop_on_error=stop_on_error

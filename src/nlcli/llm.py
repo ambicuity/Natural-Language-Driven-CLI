@@ -8,6 +8,29 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 
+def safe_unicode_text(text: str, fallback: str = None) -> str:
+    """
+    Return Unicode text if supported, otherwise return ASCII fallback.
+    
+    Args:
+        text: The Unicode text to display
+        fallback: ASCII fallback text. If None, Unicode symbols are replaced with ASCII.
+    
+    Returns:
+        Safe text for the current console
+    """
+    if fallback is None:
+        # Default fallback: replace common Unicode symbols
+        fallback = text.replace("🔍", "[SEARCH]").replace("🚀", "[RUN]").replace("⚠️", "[WARN]").replace("📁", "[DIR]")
+    
+    try:
+        # Test if text can be encoded to UTF-8
+        text.encode('utf-8')
+        return text
+    except UnicodeEncodeError:
+        return fallback
+
+
 @dataclass
 class LLMConfig:
     """Configuration for LLM integration."""
@@ -255,15 +278,15 @@ class LocalLLM:
         # Add context-aware enhancements
         if "rm" in command and "-rf" in command:
             explanation += (
-                " ⚠️  This is a destructive operation that will "
+                " [WARN] This is a destructive operation that will "
                 "permanently delete files."
             )
         elif "sudo" in command:
-            explanation += " ⚠️  This command requires administrator privileges."
+            explanation += " [WARN] This command requires administrator privileges."
         elif command.startswith("find"):
-            explanation += " 🔍 This searches for files and directories."
+            explanation += " [SEARCH] This searches for files and directories."
         elif command.startswith(("ls", "ll")):
-            explanation += " 📁 This lists directory contents."
+            explanation += " [DIR] This lists directory contents."
 
         return explanation
 
