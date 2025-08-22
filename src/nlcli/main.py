@@ -773,7 +773,7 @@ def main(
                 )
             else:
                 console.print(
-                    f"🔄 Executing {len(batch_commands)} batch commands", style="blue"
+                    f"[RUN] Executing {len(batch_commands)} batch commands", style="blue"
                 )
                 results = batch_manager.execute_commands(
                     list(batch_commands), dry_run=dry_run, stop_on_error=stop_on_error

@@ -516,15 +516,15 @@ timeout: 60
         failed = sum(1 for r in results if not r.success and not r.skipped)
         skipped = sum(1 for r in results if r.skipped)
 
-        output_lines.append(f"✅ Success: {successful}")
-        output_lines.append(f"❌ Failed: {failed}")
-        output_lines.append(f"⏭️  Skipped: {skipped}")
+        output_lines.append(f"[OK] Success: {successful}")
+        output_lines.append(f"[FAIL] Failed: {failed}")
+        output_lines.append(f"[SKIP] Skipped: {skipped}")
         output_lines.append("")
 
         for i, result in enumerate(results, 1):
-            status = "✅" if result.success else "❌"
+            status = "[OK]" if result.success else "[FAIL]"
             if result.skipped:
-                status = "⏭️"
+                status = "[SKIP]"
 
             output_lines.append(
                 f"{status} Command {i}: {result.command.natural_language}"
